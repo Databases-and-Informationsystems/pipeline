@@ -13,7 +13,6 @@ api = Api(
 )
 
 # Import and add namespaces
-from .test_routes import api as test_routes
 from .steps import api as steps_ns
 
 api.add_namespace(steps_ns, path="/steps")  # /pipeline/steps
