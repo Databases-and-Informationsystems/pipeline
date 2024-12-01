@@ -39,20 +39,20 @@ if ! docker ps --format '{{.Names}}' | grep -q 'python-black-container'; then
   echo "Please start the container using the following command:"
   echo "You need the api repository for this: https://github.com/Databases-and-Informationsystems/api"
   echo ""
-  echo "docker compose -f ../api/.githooks/docker/pre-commit/docker-compose.yml up -d"
+  echo "docker compose -f ./.githooks/docker/pre-commit/docker-compose.yml up -d"
   echo ""
 fi
 
 # Run Black in the Docker container
 # shellcheck disable=SC2086
-docker compose -f ../api/.githooks/docker/pre-commit/docker-compose.yml exec -T python-black-container black --check $CHANGED_FILES --exclude "migrations"
+docker compose -f ./.githooks/docker/pre-commit/docker-compose.yml exec -T python-black-container black --check $CHANGED_FILES --exclude "migrations"
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -ne 0 ]; then
   echo "Commit failed: Black formatting check did not pass."
   # Show detailed output by running Black again
   # shellcheck disable=SC2086
-  docker compose -f ../api/.githooks/docker/pre-commit/docker-compose.yml exec -T python-black-container black $CHANGED_FILES --diff
+  docker compose -f ./.githooks/docker/pre-commit/docker-compose.yml exec -T python-black-container black $CHANGED_FILES --diff
   exit 1
 else
   echo "Black formatting check passed. Proceeding with commit."
