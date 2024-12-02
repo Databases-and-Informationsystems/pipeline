@@ -1,5 +1,5 @@
 from flask import Blueprint
-from flask_restx import Api
+from flask_restx import Api, Namespace
 
 blueprint = Blueprint("pipeline", __name__)
 
@@ -13,6 +13,6 @@ api = Api(
 )
 
 # Import and add namespaces
-from .steps import api as steps_ns
+from .steps import steps_ns as steps_ns
 
 api.add_namespace(steps_ns, path="/steps")  # /pipeline/steps

@@ -19,9 +19,8 @@ chmod 744 ./.githooks/commit-msg
 ```
 
 #### Run pre-commit docker-compose
-Has to be run only once in the `api` folder or in this folder
 ```bash
-docker compose -f ../api/.githooks/docker/pre-commit/docker-compose.yml up -d
+docker compose -f ./.githooks/docker/pre-commit/docker-compose.yml up -d
 ```
 
 ### Select Interpreter
