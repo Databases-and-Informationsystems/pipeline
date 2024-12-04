@@ -18,11 +18,6 @@ chmod 744 ./.githooks/pre-commit
 chmod 744 ./.githooks/commit-msg
 ```
 
-#### Run pre-commit docker-compose
-```bash
-docker compose -f ./.githooks/docker/pre-commit/docker-compose.yml up -d
-```
-
 ### Select Interpreter
 Same setup as [in the api project](https://github.com/Databases-and-Informationsystems/api?tab=readme-ov-file#select-interpreter), but with different image/container
 
