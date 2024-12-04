@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class SchemaMention(BaseModel):
     id: typing.Optional[int]
     tag: str
+    description: str
 
 
 class SchemaRelation(BaseModel):
@@ -23,6 +24,6 @@ class SchemaConstraint(BaseModel):
 
 class Schema(BaseModel):
     _id: typing.Optional[int]
-    _schema_mentions: typing.List[SchemaMention]
+    schema_mentions: typing.List[SchemaMention]
     _schema_relations: typing.List[SchemaRelation]
     _schema_constraints: typing.List[SchemaConstraint]

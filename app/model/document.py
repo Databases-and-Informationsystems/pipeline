@@ -37,7 +37,7 @@ class DocumentState(Enum):
 
 class Document(BaseModel):
     id: typing.Optional[int] = None
-    name: str
+    name: typing.Optional[str] = None
     content: str
     state: typing.Optional[DocumentState] = None
     tokens: typing.Optional[typing.List[Token]] = None
