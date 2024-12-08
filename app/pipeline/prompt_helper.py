@@ -1,6 +1,5 @@
 import os
 import openai
-from dotenv import load_dotenv
 from typing import List
 
 from app.model.document import Token
@@ -10,7 +9,6 @@ from app.model.schema import Schema
 class PromptHelper:
     @staticmethod
     def get_prediction(prompt: str):
-        load_dotenv()
         key = os.getenv("OPENAI_API_KEY")
         openai.api_key = key
 

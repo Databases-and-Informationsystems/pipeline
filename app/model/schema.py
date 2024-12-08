@@ -23,7 +23,7 @@ class SchemaConstraint(BaseModel):
 
 
 class Schema(BaseModel):
-    _id: typing.Optional[int]
+    id: typing.Optional[int]
     schema_mentions: typing.List[SchemaMention]
-    _schema_relations: typing.List[SchemaRelation]
-    _schema_constraints: typing.List[SchemaConstraint]
+    schema_relations: typing.List[SchemaRelation]
+    schema_constraints: typing.List[SchemaConstraint]

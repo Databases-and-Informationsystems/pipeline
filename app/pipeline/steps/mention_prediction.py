@@ -6,15 +6,6 @@ from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 
 
-class Token:
-    id: int
-    text: str
-
-    def __init__(self, id: int, text: str):
-        self.id = id
-        self.text = text
-
-
 class MentionPrediction(PipelineStep):
     def __init__(self, name: str = "MentionPrediction"):
         super().__init__(name, PipelineStepType.MENTION_PREDICTION)
@@ -31,16 +22,19 @@ class MentionPrediction(PipelineStep):
         )
         prediction = PromptHelper.get_prediction(prompt)
 
-        if prediction.startswith("```json") and prediction.endswith("```"):
-            cleaned_prediction = prediction[7:-3].strip()
+        start_idx = prediction.find("{")
+        end_idx = prediction.rfind("}")
+
+        if start_idx != -1 and end_idx != -1 and start_idx < end_idx:
+            cleaned_prediction = prediction[start_idx : end_idx + 1].strip()
         else:
-            cleaned_prediction = prediction
+            raise ValueError("The response contains no valid JSON structur.")
 
         try:
             prediction_data = json.loads(cleaned_prediction)
             print(prediction_data)
         except json.JSONDecodeError as e:
-            print(f"JSON-Fehler: {e}")
+            raise ValueError(f"Error decoding prediction data: {e}") from e
 
         mentions = []
         for mention_data in prediction_data["mentions"]:

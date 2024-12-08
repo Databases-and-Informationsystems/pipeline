@@ -87,7 +87,11 @@ schema_mention_model = steps_ns.model(
 
 schema_relation_model = steps_ns.model(
     "SchemaRelation",
-    {"id": fields.Integer(required=False), "tag": fields.String(required=True)},
+    {
+        "id": fields.Integer(required=False),
+        "tag": fields.String(required=True),
+        "description": fields.String(required=True),
+    },
 )
 
 schema_constraint_model = steps_ns.model(
