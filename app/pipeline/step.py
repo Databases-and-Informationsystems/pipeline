@@ -35,8 +35,8 @@ class PipelineStep(abc.ABC):
         return self._name
 
     @final
-    def run(self, document_edit: DocumentEdit) -> DocumentEdit:
-        res = self._run(document_edit)
+    def run(self, document_edit: DocumentEdit, schema: Schema) -> DocumentEdit:
+        res = self._run(document_edit, schema)
         return res
 
     @final
@@ -44,7 +44,7 @@ class PipelineStep(abc.ABC):
         self._train()
 
     @abstractmethod
-    def _run(self, document_edit: DocumentEdit) -> DocumentEdit:
+    def _run(self, document_edit: DocumentEdit, schema: Schema) -> DocumentEdit:
         pass
 
     @abstractmethod

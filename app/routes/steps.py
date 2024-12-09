@@ -1,8 +1,10 @@
 from flask import jsonify, request, Response
 from flask_restx import Namespace, Resource, fields
 from pydantic import TypeAdapter
+import json
 
 from app.model.document import DocumentEdit
+from app.model.schema import Schema
 from app.pipeline.factory import PipelineFactory
 from app.pipeline.step import PipelineStepType, PipelineStep
 
@@ -30,7 +32,7 @@ token_model = steps_ns.model(
 document_model = steps_ns.model(
     "Document",
     {
-        "id": fields.String(
+        "id": fields.Integer(
             required=False, description="The unique identifier for the document"
         ),
         "content": fields.String(
@@ -56,7 +58,7 @@ document_edit_model = steps_ns.model(
 document_request = steps_ns.model(
     "Document Request Body",
     {
-        "id": fields.String(
+        "id": fields.Integer(
             required=False, description="The unique identifier for the document"
         ),
         "content": fields.String(
@@ -71,6 +73,53 @@ document_edit_request = steps_ns.model(
         "document": fields.Nested(
             document_request, required=True, description="The document being edited"
         ),
+    },
+)
+
+schema_mention_model = steps_ns.model(
+    "SchemaMention",
+    {
+        "id": fields.Integer(required=False),
+        "tag": fields.String(required=True),
+        "description": fields.String(required=True),
+    },
+)
+
+schema_relation_model = steps_ns.model(
+    "SchemaRelation",
+    {
+        "id": fields.Integer(required=False),
+        "tag": fields.String(required=True),
+        "description": fields.String(required=True),
+    },
+)
+
+schema_constraint_model = steps_ns.model(
+    "SchemaConstraint",
+    {
+        "id": fields.Integer(required=False),
+        "schema_relation": fields.Nested(schema_relation_model),
+        "schema_mention_head": fields.Nested(schema_mention_model),
+        "schema_mention_tail": fields.Nested(schema_mention_model),
+        "is_directed": fields.Boolean(required=False),
+    },
+)
+
+schema_model = steps_ns.model(
+    "Schema",
+    {
+        "id": fields.Integer(required=False),
+        "schema_mentions": fields.List(fields.Nested(schema_mention_model)),
+        # "_schema_relations": fields.List(fields.Nested(schema_relation_model)),
+        # "_schema_constraints": fields.List(fields.Nested(schema_constraint_model)),
+    },
+)
+
+combined_model = steps_ns.model(
+    "CombinedModel",
+    {
+        "document_edit": fields.Nested(document_edit_model, required=True),
+        "schema": fields.Nested(schema_model, required=True),
     },
 )
 
@@ -104,6 +153,43 @@ class TokenizeStepController(Resource):
             document_edit: DocumentEdit = pipeline_step.run(
                 TypeAdapter(DocumentEdit).validate_json(request.get_data())
             )
+
+            return jsonify(document_edit.model_dump(mode="json"))
+        except Exception as e:
+            return Response(str(e), status=500)
+
+
+@steps_ns.route("/mention")
+class MentionStepController(Resource):
+
+    @steps_ns.doc(
+        description="Execute the mention detection step of the pipeline.",
+        responses={
+            200: ("Successful response", document_edit_model),
+            500: "Internal Server Error",
+        },
+    )
+    @steps_ns.expect(combined_model, validate=True)
+    def post(self):
+        """
+        Detect mentions in a document based on the provided input.
+        """
+        try:
+            data = request.get_json()
+            document_edit_data = data.get("document_edit")
+            schema_data = data.get("schema")
+
+            document_edit = TypeAdapter(DocumentEdit).validate_json(
+                json.dumps(document_edit_data)
+            )
+            schema = TypeAdapter(Schema).validate_json(json.dumps(schema_data))
+
+            pipeline_step: PipelineStep = PipelineFactory.create_step(
+                step_type=PipelineStepType.MENTION_PREDICTION,
+                settings=None,
+            )
+
+            document_edit: DocumentEdit = pipeline_step.run(document_edit, schema)
 
             return jsonify(document_edit.model_dump(mode="json"))
         except Exception as e:
