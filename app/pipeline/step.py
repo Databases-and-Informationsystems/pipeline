@@ -18,17 +18,14 @@ class PipelineStepType(Enum):
 class PipelineStep(abc.ABC):
     _pipeline_step_type: PipelineStepType
     _name: str
-    _schema: typing.Optional[Schema]
 
     def __init__(
         self,
         name: str,
         pipeline_step_type: PipelineStepType,
-        schema: typing.Optional[Schema] = None,
     ):
         self._pipeline_step_type = pipeline_step_type
         self._name = name
-        self._schema = schema
 
     @property
     def name(self):

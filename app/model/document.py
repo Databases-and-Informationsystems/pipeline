@@ -1,3 +1,4 @@
+import json
 import typing
 from enum import Enum
 
@@ -11,15 +12,40 @@ class Token(BaseModel):
     sentence_index: int
     pos_tag: str
 
+    def to_json(self):
+        return json.dumps(
+            {
+                "id": self.id,
+                "text": self.text,
+                "document_index": self.document_index,
+                "sentence_index": self.sentence_index,
+                "pos_tag": self.pos_tag,
+            }
+        )
+
 
 class Entity(BaseModel):
     id: int
 
 
 class Mention(BaseModel):
+    id: typing.Optional[int] = None
     tag: str
     tokens: typing.List[Token]
     entity: typing.Optional[Entity] = None
+
+    def to_json(self):
+        sorted_tokens = sorted(self.tokens, key=lambda t: t.document_index)
+
+        return json.dumps(
+            {
+                "id": self.id,
+                "tag": self.text,
+                "start_token_id": sorted_tokens[0].id,
+                "end_token_id": sorted_tokens[-1].id,
+                "text": " ".join(list(map(lambda t: t.text, sorted_tokens))),
+            }
+        )
 
 
 class Relation(BaseModel):
@@ -68,4 +94,4 @@ class DocumentEdit(BaseModel):
     entities: typing.Optional[typing.List[Entity]] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

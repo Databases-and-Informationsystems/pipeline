@@ -151,7 +151,14 @@ class TokenizeStepController(Resource):
                 settings=None,
             )
             document_edit: DocumentEdit = pipeline_step.run(
-                TypeAdapter(DocumentEdit).validate_json(request.get_data())
+                TypeAdapter(DocumentEdit).validate_json(request.get_data()),
+                # Tokenizer does not require Schema in any case -> insert empty default Schema
+                Schema(
+                    schema_mentions=[],
+                    schema_constraints=[],
+                    schema_relations=[],
+                    id=None,
+                ),
             )
 
             return jsonify(document_edit.model_dump(mode="json"))
@@ -163,7 +170,7 @@ class TokenizeStepController(Resource):
 class MentionStepController(Resource):
 
     @steps_ns.doc(
-        description="Execute the mention detection step of the pipeline.",
+        description="Execute the mention prediction step of the pipeline.",
         responses={
             200: ("Successful response", document_edit_model),
             500: "Internal Server Error",
@@ -193,4 +200,42 @@ class MentionStepController(Resource):
 
             return jsonify(document_edit.model_dump(mode="json"))
         except Exception as e:
+            return Response(str(e), status=500)
+
+
+@steps_ns.route("/entity")
+class EntityStepController(Resource):
+
+    @steps_ns.doc(
+        description="Execute the entity prediction step of the pipeline.",
+        responses={
+            200: ("Successful response", document_edit_model),
+            500: "Internal Server Error",
+        },
+    )
+    @steps_ns.expect(combined_model, validate=True)
+    def post(self):
+        """
+        Detect entities in a document based on the provided input.
+        """
+        try:
+            data = request.get_json()
+            document_edit_data = data.get("document_edit")
+            schema_data = data.get("schema")
+
+            document_edit = TypeAdapter(DocumentEdit).validate_json(
+                json.dumps(document_edit_data)
+            )
+            schema = TypeAdapter(Schema).validate_json(json.dumps(schema_data))
+
+            pipeline_step: PipelineStep = PipelineFactory.create_step(
+                step_type=PipelineStepType.ENTITY_PREDICTION,
+                settings=None,
+            )
+
+            document_edit: DocumentEdit = pipeline_step.run(document_edit, schema)
+
+            return jsonify(document_edit.model_dump(mode="json"))
+        except Exception as e:
+            print(e)
             return Response(str(e), status=500)

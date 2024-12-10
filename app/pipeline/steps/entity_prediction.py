@@ -1,12 +1,12 @@
 import json
 
-from app.pipeline.models.llm import GptModel, LLMMentionPrediction
+from app.pipeline.models.llm import GptModel, LLMMentionPrediction, LLMEntityPrediction
 from app.model.document import DocumentEdit, Mention
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 
 
-class MentionPrediction(PipelineStep):
+class EntityPrediction(PipelineStep):
     temperature: float
     model: GptModel
 
@@ -16,7 +16,7 @@ class MentionPrediction(PipelineStep):
         model: GptModel,
         name: str = "MentionPrediction",
     ):
-        super().__init__(name, PipelineStepType.MENTION_PREDICTION)
+        super().__init__(name, PipelineStepType.ENTITY_PREDICTION)
         self.temperature = temperature
         self.model = model
 
@@ -25,11 +25,11 @@ class MentionPrediction(PipelineStep):
 
     def _run(self, document_edit: DocumentEdit, schema: Schema) -> DocumentEdit:
 
-        llm_mention_detection = LLMMentionPrediction(
+        llm_entity_detection = LLMEntityPrediction(
             model=self.model, temperature=self.temperature
         )
 
-        prediction_json = llm_mention_detection.run(
+        prediction_json = llm_entity_detection.run(
             document_edit=document_edit, schema=schema
         )
 
@@ -38,17 +38,6 @@ class MentionPrediction(PipelineStep):
         except json.JSONDecodeError as e:
             raise ValueError(f"Error decoding prediction data: {e}") from e
 
-        mentions = []
-        for mention_data in prediction_data["mentions"]:
-            tokens = []
-            for i in range(
-                mention_data["startTokenDocumentIndex"],
-                mention_data["endTokenDocumentIndex"] + 1,
-            ):
-                tokens.append(document_edit.document.tokens[i])
-            mention = Mention(tag=mention_data["type"], tokens=tokens)
-            mentions.append(mention)
-
-        document_edit.mentions = mentions
+        # TODO add entity predictions to document edit
 
         return document_edit

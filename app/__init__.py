@@ -1,9 +1,9 @@
 from flask import Flask
 from dotenv import load_dotenv
 
-from werkzeug.middleware.proxy_fix import ProxyFix
-
 from .routes import blueprint
+
+OPEN_AI_KEY_ENV_CONST = "OPEN_AI_KEY"
 
 
 def create_app():
