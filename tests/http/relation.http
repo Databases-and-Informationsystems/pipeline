@@ -1,5 +1,5 @@
 ### Test
-POST http://localhost/pipeline/steps/entity
+POST http://localhost/pipeline/steps/relation
 Content-Type: application/json
 
 {

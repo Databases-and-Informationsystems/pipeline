@@ -1,7 +1,8 @@
 import json
+import typing
 
 from app.pipeline.models.llm import GptModel, LLMMentionPrediction, LLMEntityPrediction
-from app.model.document import DocumentEdit, Mention
+from app.model.document import DocumentEdit, Mention, Entity
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 
@@ -38,6 +39,39 @@ class EntityPrediction(PipelineStep):
         except json.JSONDecodeError as e:
             raise ValueError(f"Error decoding prediction data: {e}") from e
 
-        # TODO add entity predictions to document edit
+        print(prediction_data)
+
+        # TODO this is not good style and needs to be refactored
+        for index, entity_array in enumerate(prediction_data):
+            mentions = list(
+                map(
+                    lambda mention_index: next(
+                        (m for m in document_edit.mentions if m.id == mention_index),
+                        None,
+                    ),
+                    entity_array,
+                )
+            )
+
+            if has_different_mentions(mentions):
+                continue
+
+            for mention in document_edit.mentions:
+                existing_mention = next(
+                    (m for m in mentions if m.id == mention.id), None
+                )
+                if existing_mention is not None:
+                    mention.entity = Entity(id=index)
 
         return document_edit
+
+
+def has_different_mentions(mentions: typing.List[Mention]) -> bool:
+    if len(mentions) == 0:
+        return False
+    reference_value = mentions[0].tag
+
+    for obj in mentions[1:]:
+        if obj.tag != reference_value:
+            return True
+    return False

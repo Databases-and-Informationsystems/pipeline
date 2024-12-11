@@ -217,7 +217,14 @@ class LLMEntityPrediction(LLM):
     def run(self, document_edit: DocumentEdit, schema: Schema) -> str:
         prompt: str = self._get_prompt(document_edit, schema)
         print(prompt)
-        return "Hello World"
+        res = get_prediction(
+            prompt=prompt,
+            model=self.model,
+            key=self.open_ai_key,
+            temperature=self.temperature,
+        )
+
+        return extract_json(res)
 
     def _get_prompt(self, document_edit: DocumentEdit, schema: Schema) -> str:
         return f"""
@@ -226,12 +233,6 @@ You are an advanced text analysis assistant designed to process and analyze busi
 
 **Input Specification**:
 - **Text**: A passage of text (string).
-- **Tokens**: A JSON array where each word in the text is represented as a token abd contains:
-    - id: Unique identifier for the token.
-    - text: Text of the token.
-    - pos_tag: Part of speech tag of the token.
-    - document_index: Index of the token in the text
-    - sentence_index: Index of the token in its sentence
 - **Mentions**: A JSON array of objects. Each object represents a mention in the text and contains:
     - id: Unique identifier for the mention.
     - tag: Type of the mention.
@@ -245,22 +246,21 @@ You are an advanced text analysis assistant designed to process and analyze busi
 **Output Specification**:
 You must return a JSON array containing groups of mention IDs. Each group represents an entity in the text. Mentions within the same group must refer to the same real-world entity.
 The output should be in a raw JSON format. 
-    - It should be a JSON array with the following content:
-    - Each element is a json list of ids (numbers). Each of the ids in one list refer to the same real-world entity.
+    - Each element is a json list of ids (numbers). Each of the ids in one list refer to the same real-world entity. There might be mentions, that are the single element of a list. Is is not possible, that mentions with different tag are in the same list
 
 
 **Input**
-- Text: {document_edit.document.content}
-- Tokens: {LLMEntityPrediction._get_token_list_string(document_edit.document.tokens)}
-- Mentions: {LLMEntityPrediction._get_mention_list_string(document_edit.mentions)}
-- Mention Types: {LLMEntityPrediction.get_schema_mention_string(schema)}
+- Text:     
+    {document_edit.document.content}
+- Mentions:
+    {LLMEntityPrediction._get_mention_list_string(document_edit.mentions, document_edit.document.tokens)}
+- Mention Types:
+    {LLMEntityPrediction.get_schema_mention_string(schema)}
 
         """
 
     @staticmethod
-    def _get_token_list_string(tokens: typing.List[Token]) -> str:
-        return f"{[t.to_json() for t in tokens]}]"
-
-    @staticmethod
-    def _get_mention_list_string(mentions: typing.List[Mention]) -> str:
-        return f"{[m.to_json() for m in mentions]}"
+    def _get_mention_list_string(
+        mentions: typing.List[Mention], tokens: typing.List[Token]
+    ) -> str:
+        return f"{[m.to_json(tokens) for m in mentions]}"
