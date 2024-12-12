@@ -1,5 +1,5 @@
 from flask_restx import fields
-from app.extension import api
+from app.controllers import api
 
 # TODO this is currently just copied from the former place.
 token_model = api.model(
