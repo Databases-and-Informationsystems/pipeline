@@ -23,18 +23,13 @@ class LLM(ABC):
 
     @staticmethod
     def get_schema_mention_string(schema: Schema, for_entities: bool = False) -> str:
-        schema_mentions = schema.schema_mentions
-        if for_entities:
-            schema_mentions = filter(
-                lambda mention: mention.has_entities, schema_mentions
+        return "\n".join(
+            f'"{schema_mention.tag}": {schema_mention.description}'
+            for schema_mention in filter(
+                lambda mention: mention.has_entities if for_entities else True,
+                schema.schema_mentions,
             )
-
-        schema_mention_string = ""
-        for schema_mention in schema_mentions:
-            schema_mention_string += (
-                f'"{schema_mention.tag}": {schema_mention.description}\n'
-            )
-        return schema_mention_string
+        )
 
 
 class LLMMentionPrediction(LLM):
