@@ -4,6 +4,7 @@ import nltk
 from nltk.tokenize import PunktSentenceTokenizer
 
 from app.model.document import DocumentEdit, Token
+from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 
 
@@ -28,7 +29,7 @@ class Tokenizer(PipelineStep):
     def _train(self):
         pass
 
-    def _run(self, document_edit: DocumentEdit) -> DocumentEdit:
+    def _run(self, document_edit: DocumentEdit, schema: Schema) -> DocumentEdit:
         tokenizer = PunktSentenceTokenizer()
 
         # Tokens where a "." does not mean the end of a sentence

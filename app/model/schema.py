@@ -1,21 +1,23 @@
 import typing
+from dataclasses import field
 
 from pydantic import BaseModel
 
 
 class SchemaMention(BaseModel):
-    id: typing.Optional[int]
+    id: typing.Optional[int] = None
     tag: str
     description: str
+    has_entities: bool = False
 
 
 class SchemaRelation(BaseModel):
-    id: typing.Optional[int]
+    id: typing.Optional[int] = None
     tag: str
 
 
 class SchemaConstraint(BaseModel):
-    id: typing.Optional[int]
+    id: typing.Optional[int] = None
     schema_relation: SchemaRelation
     schema_mention_head: SchemaMention
     schema_mention_tail: SchemaMention
@@ -23,7 +25,7 @@ class SchemaConstraint(BaseModel):
 
 
 class Schema(BaseModel):
-    id: typing.Optional[int]
-    schema_mentions: typing.List[SchemaMention]
-    schema_relations: typing.List[SchemaRelation]
-    schema_constraints: typing.List[SchemaConstraint]
+    id: typing.Optional[int] = None
+    schema_mentions: typing.List[SchemaMention] = field(default_factory=list)
+    schema_relations: typing.List[SchemaRelation] = field(default_factory=list)
+    schema_constraints: typing.List[SchemaConstraint] = field(default_factory=list)

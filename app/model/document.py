@@ -1,3 +1,4 @@
+import json
 import typing
 from enum import Enum
 
@@ -6,10 +7,21 @@ from pydantic import BaseModel
 
 class Token(BaseModel):
     id: typing.Optional[int] = None
-    text: str
-    document_index: int
-    sentence_index: int
-    pos_tag: str
+    text: typing.Optional[str] = None
+    document_index: typing.Optional[int] = None
+    sentence_index: typing.Optional[int] = None
+    pos_tag: typing.Optional[str] = None
+
+    def to_json(self) -> str:
+        return json.dumps(
+            {
+                "id": self.id,
+                "text": self.text,
+                "document_index": self.document_index,
+                "sentence_index": self.sentence_index,
+                "pos_tag": self.pos_tag,
+            }
+        )
 
 
 class Entity(BaseModel):
@@ -17,9 +29,38 @@ class Entity(BaseModel):
 
 
 class Mention(BaseModel):
+    id: typing.Optional[int] = None
     tag: str
     tokens: typing.List[Token]
     entity: typing.Optional[Entity] = None
+
+    def to_json(self, tokens: typing.List[Token]):
+        tokens_with_content = list(
+            map(
+                lambda token: next((t for t in tokens if t.id == token.id), None),
+                self.tokens,
+            )
+        )
+        if any(t is None for t in tokens_with_content):
+            raise ValueError(
+                "The token of an mention is not part of the token list of the document"
+            )
+        sorted_tokens_with_content = sorted(
+            tokens_with_content,
+            key=lambda t: t.document_index,
+        )
+
+        return json.dumps(
+            {
+                "id": self.id,
+                "tag": self.tag,
+                "start_token_id": sorted_tokens_with_content[0].id,
+                "end_token_id": sorted_tokens_with_content[-1].id,
+                "text": " ".join(
+                    list(map(lambda t: t.text, sorted_tokens_with_content))
+                ),
+            }
+        )
 
 
 class Relation(BaseModel):
@@ -68,4 +109,4 @@ class DocumentEdit(BaseModel):
     entities: typing.Optional[typing.List[Entity]] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

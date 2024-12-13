@@ -1,38 +1,40 @@
 import json
 
-from app.pipeline.prompt_helper import PromptHelper
-from app.model.document import DocumentEdit, Token, Mention
+from app.pipeline.models.llm import GptModel, LLMMentionPrediction
+from app.model.document import DocumentEdit, Mention
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 
 
 class MentionPrediction(PipelineStep):
-    def __init__(self, name: str = "MentionPrediction"):
+    temperature: float
+    model: GptModel
+
+    def __init__(
+        self,
+        temperature: float,
+        model: GptModel,
+        name: str = "MentionPrediction",
+    ):
         super().__init__(name, PipelineStepType.MENTION_PREDICTION)
+        self.temperature = temperature
+        self.model = model
 
     def _train(self):
         pass
 
     def _run(self, document_edit: DocumentEdit, schema: Schema) -> DocumentEdit:
-        print("run mention detection")
-        tokens = document_edit.document.tokens
 
-        prompt = PromptHelper.get_mention_prediction_prompt(
-            document_edit.document.content, document_edit.document.tokens, schema
+        llm_mention_detection = LLMMentionPrediction(
+            model=self.model, temperature=self.temperature
         )
-        prediction = PromptHelper.get_prediction(prompt)
 
-        start_idx = prediction.find("{")
-        end_idx = prediction.rfind("}")
-
-        if start_idx != -1 and end_idx != -1 and start_idx < end_idx:
-            cleaned_prediction = prediction[start_idx : end_idx + 1].strip()
-        else:
-            raise ValueError("The response contains no valid JSON structur.")
+        prediction_json = llm_mention_detection.run(
+            document_edit=document_edit, schema=schema
+        )
 
         try:
-            prediction_data = json.loads(cleaned_prediction)
-            print(prediction_data)
+            prediction_data = json.loads(prediction_json)
         except json.JSONDecodeError as e:
             raise ValueError(f"Error decoding prediction data: {e}") from e
 
@@ -40,8 +42,8 @@ class MentionPrediction(PipelineStep):
         for mention_data in prediction_data["mentions"]:
             tokens = []
             for i in range(
-                mention_data["startTokenDocumentIndices"],
-                mention_data["endTokenDocumentIndices"] + 1,
+                mention_data["startTokenDocumentIndex"],
+                mention_data["endTokenDocumentIndex"] + 1,
             ):
                 tokens.append(document_edit.document.tokens[i])
             mention = Mention(tag=mention_data["type"], tokens=tokens)
