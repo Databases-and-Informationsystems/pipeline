@@ -1,19 +1,35 @@
 import typing
+from abc import abstractmethod, ABC
 
 import nltk
 from nltk.tokenize import PunktSentenceTokenizer
 
-from app.model.document import DocumentEdit, Token
-from app.model.schema import Schema
+from app.model.document import Token, CToken
 from app.pipeline.step import PipelineStep, PipelineStepType
-
 
 from nltk.tokenize import word_tokenize
 
 
-class Tokenizer(PipelineStep):
-    def __init__(self, name: str = "Tokenizer"):
+class TokenizeStep(PipelineStep, ABC):
+
+    def __init__(
+        self,
+        name: str,
+    ):
         super().__init__(name, PipelineStepType.TOKENIZER)
+
+    def run(self, content: str) -> typing.List[CToken]:
+        res = self._run(content)
+        return res
+
+    @abstractmethod
+    def _run(self, content: str) -> typing.List[CToken]:
+        pass
+
+
+class Tokenizer(TokenizeStep):
+    def __init__(self, name: str = "Tokenizer"):
+        super().__init__(name)
 
         # Both 'punkt_tab' and 'averaged_perceptron_tagger_eng' are required for nltk tokenizing
         try:
@@ -29,7 +45,7 @@ class Tokenizer(PipelineStep):
     def _train(self):
         pass
 
-    def _run(self, document_edit: DocumentEdit, schema: Schema) -> DocumentEdit:
+    def _run(self, content: str) -> typing.List[CToken]:
         tokenizer = PunktSentenceTokenizer()
 
         # Tokens where a "." does not mean the end of a sentence
@@ -38,7 +54,7 @@ class Tokenizer(PipelineStep):
         )
         sentences = tokenizer.tokenize(
             # ".." Is not a valid token but rather a shortcut + end of sentence
-            document_edit.document.content.replace("..", ". .")
+            content.replace("..", ". .")
         )
 
         tokens: typing.List[Token] = []
@@ -51,17 +67,14 @@ class Tokenizer(PipelineStep):
 
             for token, tag in tagged_tokens:
                 tokens.append(
-                    Token(
+                    CToken(
                         text=token,
                         pos_tag=tag,
                         document_index=document_index,
                         sentence_index=sentence_index,
-                        id=None,
                     )
                 )
                 document_index += 1
 
             sentence_index += 1
-
-        document_edit.document.tokens = tokens
-        return document_edit
+        return tokens

@@ -2,34 +2,30 @@ import json
 import typing
 from abc import ABC, abstractmethod
 
-from app.pipeline.models.llm import GptModel, LLMEntityPrediction
+from app.pipeline.models.llm import GptModel, LLMRelationPrediction
 from app.model.document import Mention
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 
 
-class EntityStep(PipelineStep, ABC):
+class RelationStep(PipelineStep, ABC):
 
     def __init__(
         self,
         name: str,
     ):
-        super().__init__(name, PipelineStepType.ENTITY_PREDICTION)
+        super().__init__(name, PipelineStepType.RELATION_PREDICTION)
 
-    def run(
-        self, content: str, schema: Schema, mentions: typing.List[Mention]
-    ) -> typing.List[typing.List[int]]:
+    def run(self, content: str, schema: Schema, mentions: typing.List[Mention]) -> any:
         res = self._run(content, schema, mentions)
         return res
 
     @abstractmethod
-    def _run(
-        self, content: str, schema: Schema, mentions: typing.List[Mention]
-    ) -> typing.List[typing.List[int]]:
+    def _run(self, content: str, schema: Schema, mentions: typing.List[Mention]) -> any:
         pass
 
 
-class EntityPrediction(EntityStep):
+class RelationPrediction(RelationStep):
     temperature: float
     model: GptModel
 
@@ -37,7 +33,7 @@ class EntityPrediction(EntityStep):
         self,
         temperature: float,
         model: GptModel,
-        name: str = "MentionPrediction",
+        name: str = "RelationPrediction",
     ):
         super().__init__(name)
         self.temperature = temperature
@@ -46,11 +42,9 @@ class EntityPrediction(EntityStep):
     def _train(self):
         pass
 
-    def _run(
-        self, content: str, schema: Schema, mentions: typing.List[Mention]
-    ) -> typing.List[typing.List[int]]:
+    def _run(self, content: str, schema: Schema, mentions: typing.List[Mention]) -> any:
 
-        llm_entity_detection = LLMEntityPrediction(
+        llm_entity_detection = LLMRelationPrediction(
             model=self.model, temperature=self.temperature
         )
 

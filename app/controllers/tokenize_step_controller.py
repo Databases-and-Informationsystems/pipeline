@@ -1,15 +1,14 @@
-from flask import request, jsonify, Response
-from flask_restx import Resource, Namespace
-from pydantic import TypeAdapter
+import typing
 
-from app.model.document import DocumentEdit
-from app.model.schema import Schema
-from app.pipeline import PipelineStep
-from app.pipeline.factory import PipelineFactory
-from app.pipeline.step import PipelineStepType
-from app.restx_dtos import document_edit_request, document_edit_model
+from flask import request, jsonify, Response
+from flask_restx import Resource
+
+from app.model.document import CToken
+from app.pipeline.factory import TokenizeStepFactory
+from app.restx_dtos import tokenize_step_input, tokenize_step_output
 
 from . import steps_ns
+from ..pipeline.steps.tokenizer import TokenizeStep
 
 
 @steps_ns.route("/tokenize")
@@ -19,37 +18,25 @@ from . import steps_ns
 @steps_ns.response(500, "Internal server error")
 class TokenizeStepController(Resource):
 
-    def get(self):
-        return "GET of Tokenize controller"
-
     @steps_ns.doc(
         description="Execute the tokenize step of the pipeline.",
         responses={
-            200: ("Successful response", document_edit_model),
+            200: ("Successful response", tokenize_step_output),
             500: "Internal Server Error",
         },
     )
-    @steps_ns.expect(document_edit_request, validate=True)
+    @steps_ns.expect(tokenize_step_input, validate=True)
     def post(self):
         """
         Tokenize a document based on the provided input.
         """
         try:
-            pipeline_step: PipelineStep = PipelineFactory.create_step(
-                step_type=PipelineStepType.TOKENIZER,
-                settings=None,
-            )
-            document_edit: DocumentEdit = pipeline_step.run(
-                TypeAdapter(DocumentEdit).validate_json(request.get_data()),
-                # Tokenizer does not require Schema in any case -> insert empty default Schema
-                Schema(
-                    schema_mentions=[],
-                    schema_constraints=[],
-                    schema_relations=[],
-                    id=None,
-                ),
-            )
+            tokenizer: TokenizeStep = TokenizeStepFactory.create()
 
-            return jsonify(document_edit.model_dump(mode="json"))
+            content = request.get_json().get("content")
+
+            tokens: typing.List[CToken] = tokenizer.run(content=content)
+
+            return jsonify([token.model_dump(mode="json") for token in tokens])
         except Exception as e:
             return Response(str(e), status=500)

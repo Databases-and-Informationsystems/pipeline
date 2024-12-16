@@ -1,73 +1,35 @@
 from flask_restx import fields
 from app.controllers import api
 
-# TODO this is currently just copied from the former place.
-token_model = api.model(
+### --------------------------------------------------------------------------------------------------------------------
+# general sub -inputs
+### --------------------------------------------------------------------------------------------------------------------
+
+token_input = api.model(
     "Token",
     {
-        "text": fields.String(
-            required=True, description="Text represented by the token"
-        ),
-        "document_index": fields.Integer(
-            required=True, description="Index in document"
-        ),
-        "sentence_index": fields.Integer(
-            required=True, description="Sentence in document"
-        ),
-        "pos_tag": fields.String(
-            required=True, description="Part of speech tag of the token in the document"
-        ),
+        "id": fields.Integer,
+        "text": fields.String,
+        "document_index": fields.Integer(required=True),
+        "sentence_index": fields.Integer(required=True),
+        "pos_tag": fields.String(required=True),
     },
 )
 
-document_model = api.model(
-    "Document",
+mention_input = api.model(
+    "Mention",
     {
-        "id": fields.Integer(
-            required=False, description="The unique identifier for the document"
-        ),
-        "content": fields.String(
-            required=True, description="The content of the document"
-        ),
-        "tokens": fields.List(
-            fields.Nested(token_model),
-            required=True,
-            description="List of tokens in the document. (Are not required for the tokenize pipeline step",
-        ),
+        "id": fields.Integer(required=True),
+        "tag": fields.String(required=True),
+        "tokens": fields.List(fields.Nested(token_input, required=True)),
     },
 )
 
-document_edit_model = api.model(
-    "DocumentEdit",
-    {
-        "document": fields.Nested(
-            document_model, required=True, description="The document being edited"
-        ),
-    },
-)
+### --------------------------------------------------------------------------------------------------------------------
+# Schema
+### --------------------------------------------------------------------------------------------------------------------
 
-document_request = api.model(
-    "Document Request Body",
-    {
-        "id": fields.Integer(
-            required=False, description="The unique identifier for the document"
-        ),
-        "content": fields.String(
-            required=True, description="The content of the document"
-        ),
-    },
-)
-
-document_edit_request = api.model(
-    "DocumentEdit Request Body",
-    {
-        "document": fields.Nested(
-            document_request, required=True, description="The document being edited"
-        ),
-    },
-)
-
-schema_mention_model = api.model(
+schema_mention_input = api.model(
     "SchemaMention",
     {
         "id": fields.Integer(required=False),
@@ -76,7 +38,7 @@ schema_mention_model = api.model(
     },
 )
 
-schema_relation_model = api.model(
+schema_relation_input = api.model(
     "SchemaRelation",
     {
         "id": fields.Integer(required=False),
@@ -85,29 +47,134 @@ schema_relation_model = api.model(
     },
 )
 
-schema_constraint_model = api.model(
+schema_constraint_input = api.model(
     "SchemaConstraint",
     {
         "id": fields.Integer(required=False),
-        "schema_relation": fields.Nested(schema_relation_model),
-        "schema_mention_head": fields.Nested(schema_mention_model),
-        "schema_mention_tail": fields.Nested(schema_mention_model),
+        "schema_relation": fields.Nested(schema_relation_input),
+        "schema_mention_head": fields.Nested(schema_mention_input),
+        "schema_mention_tail": fields.Nested(schema_mention_input),
         "is_directed": fields.Boolean(required=False),
     },
 )
 
-schema_model = api.model(
-    "Schema",
+schema_input_for_mentions = api.model(
+    "Schema for Mentions",
     {
         "id": fields.Integer(required=False),
-        "schema_mentions": fields.List(fields.Nested(schema_mention_model)),
+        "schema_mentions": fields.List(fields.Nested(schema_mention_input)),
     },
 )
 
-combined_model = api.model(
-    "CombinedModel",
+schema_input_for_relations = api.model(
+    "Schema for Relations",
     {
-        "document_edit": fields.Nested(document_edit_model, required=True),
-        "schema": fields.Nested(schema_model, required=True),
+        "id": fields.Integer(required=False),
+        "schema_mentions": fields.List(fields.Nested(schema_mention_input)),
+        "schema_relations": fields.List(fields.Nested(schema_relation_input)),
+        "schema_constraints": fields.List(fields.Nested(schema_constraint_input)),
+    },
+)
+
+### --------------------------------------------------------------------------------------------------------------------
+# Tokenize
+### --------------------------------------------------------------------------------------------------------------------
+
+tokenize_step_input = api.model(
+    "TokenizeInput",
+    {
+        "content": fields.String(required=True),
+    },
+)
+
+tokenize_step_output = api.model(
+    "TokenizeOutput",
+    {
+        "text": fields.String(required=True),
+        "document_index": fields.Integer(required=True),
+        "sentence_index": fields.Integer(required=True),
+        "pos_tag": fields.String(required=True),
+    },
+)
+
+### --------------------------------------------------------------------------------------------------------------------
+# Mention detection
+### --------------------------------------------------------------------------------------------------------------------
+
+mention_step_input = api.model(
+    "MentionInput",
+    {
+        "schema": fields.Nested(schema_input_for_mentions, required=True),
+        "content": fields.String(required=True),
+        "tokens": fields.List(fields.Nested(token_input)),
+    },
+)
+
+new_mention = api.model(
+    "NewMention",
+    {
+        "type": fields.String(required=True),
+        "startTokenDocumentIndex": fields.Integer(required=True),
+        "endTokenDocumentIndex": fields.Integer(required=True),
+    },
+)
+
+mention_step_output = api.model(
+    "MentionOutput",
+    {"mentions": fields.List(fields.Nested(new_mention), required=True)},
+)
+
+### --------------------------------------------------------------------------------------------------------------------
+# Entity detection
+### --------------------------------------------------------------------------------------------------------------------
+
+entity_step_input = api.model(
+    "EntityInput",
+    {
+        "schema": fields.Nested(schema_input_for_mentions, required=True),
+        "content": fields.String(required=True),
+        "Mentions": fields.List(fields.Nested(mention_input)),
+    },
+)
+
+entity_step_output = api.model(
+    "EntityOutput",
+    {
+        "grouped_mentions": fields.List(
+            fields.List(
+                fields.Integer,
+                description="List of all mentions that are grouped as one entity",
+            ),
+            description="All grouped Mention Ids",
+        )
+    },
+)
+
+### --------------------------------------------------------------------------------------------------------------------
+# Relation detection
+### --------------------------------------------------------------------------------------------------------------------
+
+new_relation = api.model(
+    "NewRelation",
+    {
+        "type": fields.String(required=True),
+        "mention_head_id": fields.Integer(required=True),
+        "mention_tail_id": fields.Integer(required=True),
+    },
+)
+
+relation_step_input = api.model(
+    "RelationInput",
+    {
+        "schema": fields.Nested(schema_input_for_relations, required=True),
+        "content": fields.String(required=True),
+        "mentions": fields.List(fields.Nested(mention_input), required=True),
+    },
+)
+
+relation_step_output = api.model(
+    "RelationOutput",
+    {
+        "relations": fields.List(fields.Nested(new_relation), required=True),
     },
 )

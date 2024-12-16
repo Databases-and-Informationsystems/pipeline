@@ -1,17 +1,17 @@
 import json
 import traceback
+import typing
 
 from flask import request, jsonify, Response
 from flask_restx import Resource
 from pydantic import TypeAdapter
 
 from . import steps_ns
-from ..model.document import DocumentEdit
+from ..model.document import Mention
 from ..model.schema import Schema
-from ..pipeline import PipelineStep
-from ..pipeline.factory import PipelineFactory
-from ..pipeline.step import PipelineStepType
-from ..restx_dtos import document_edit_model, combined_model
+from ..pipeline.factory import RelationStepFactory
+from ..pipeline.steps.relation_prediction import RelationStep
+from ..restx_dtos import relation_step_input, relation_step_output
 
 
 @steps_ns.route("/relation")
@@ -20,33 +20,39 @@ class RelationStepController(Resource):
     @steps_ns.doc(
         description="Execute the relation prediction step of the pipeline.",
         responses={
-            200: ("Successful response", document_edit_model),
+            200: ("Successful response", relation_step_output),
             500: "Internal Server Error",
         },
     )
-    @steps_ns.expect(combined_model, validate=True)
+    @steps_ns.expect(relation_step_input, validate=True)
     def post(self):
         """
         Detect relation in a document based on the provided input.
         """
         try:
+            # TODO convert to new structure
             data = request.get_json()
-            document_edit_data = data.get("document_edit")
+            content = data.get("content")
+            mentions_data = data.get("mentions")
             schema_data = data.get("schema")
 
-            document_edit = TypeAdapter(DocumentEdit).validate_json(
-                json.dumps(document_edit_data)
-            )
+            mentions: typing.List[Mention] = [
+                TypeAdapter(Mention).validate_json(json.dumps(mention_data))
+                for mention_data in mentions_data
+            ]
             schema = TypeAdapter(Schema).validate_json(json.dumps(schema_data))
 
-            pipeline_step: PipelineStep = PipelineFactory.create_step(
-                step_type=PipelineStepType.RELATION_PREDICTION,
+            relation_pipeline_step: RelationStep = RelationStepFactory.create(
                 settings=None,
             )
 
-            document_edit: DocumentEdit = pipeline_step.run(document_edit, schema)
+            # TODO
+            res: any = relation_pipeline_step.run(
+                content=content, schema=schema, mentions=mentions
+            )
 
-            return jsonify(document_edit.model_dump(mode="json"))
+            # TODO
+            return jsonify(res)
         except Exception as e:
             # TODO use a global exception wrapper to return different details in prod/dev
             error_message = str(e)

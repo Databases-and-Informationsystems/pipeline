@@ -2,7 +2,7 @@ import os
 import typing
 from abc import ABC
 
-from app.model.document import DocumentEdit, Token, Mention
+from app.model.document import Token, Mention
 from app.model.schema import Schema
 from app.model.settings import GptModel
 from app.util.llm_util import get_prediction, extract_json
@@ -36,8 +36,8 @@ class LLMMentionPrediction(LLM):
     def __init__(self, model: GptModel, temperature: float):
         super().__init__(model, temperature)
 
-    def run(self, document_edit: DocumentEdit, schema: Schema) -> str:
-        prompt: str = self._get_prompt(document_edit, schema)
+    def run(self, content: str, schema: Schema, tokens: typing.List[Token]) -> str:
+        prompt: str = LLMMentionPrediction._get_prompt(content, schema, tokens)
         print(prompt)
         res = get_prediction(
             prompt=prompt,
@@ -48,7 +48,8 @@ class LLMMentionPrediction(LLM):
 
         return extract_json(res)
 
-    def _get_prompt(self, document_edit: DocumentEdit, schema: Schema) -> str:
+    @staticmethod
+    def _get_prompt(content: str, schema: Schema, tokens: typing.List[Token]) -> str:
         schema_mention_string = LLMMentionPrediction.get_schema_mention_string(schema)
         return f"""
 You are an advanced text analysis assistant. Your task is to process a given text with annotated tokens and extract mentions based on their context. 
@@ -169,39 +170,37 @@ Tokens: {{
         }},
 
 Result:
-{{
-    "mentions": [
-        {{
-            "type": "Activity Data",
-            "startTokenDocumentIndex": 1,
-            "endTokenDocumentIndex": 2
-        }},
-        {{
-            "type": "Activity",
-            "startTokenDocumentIndex": 4,
-            "endTokenDocumentIndex": 4
-        }},
-        {{
-            "type": "Activity Data",
-            "startTokenDocumentIndex": 6,
-            "endTokenDocumentIndex": 6
-        }},
-        {{
-            "type": "Activity",
-            "startTokenDocumentIndex": 8,
-            "endTokenDocumentIndex": 8
-        }},
-        {{
-            "type": "Actor",
-            "startTokenDocumentIndex": 10,
-            "endTokenDocumentIndex": 12
-        }}
-    ]
-}}
+[
+    {{
+        "type": "Activity Data",
+        "startTokenDocumentIndex": 1,
+        "endTokenDocumentIndex": 2
+    }},
+    {{
+        "type": "Activity",
+        "startTokenDocumentIndex": 4,
+        "endTokenDocumentIndex": 4
+    }},
+    {{
+        "type": "Activity Data",
+        "startTokenDocumentIndex": 6,
+        "endTokenDocumentIndex": 6
+    }},
+    {{
+        "type": "Activity",
+        "startTokenDocumentIndex": 8,
+        "endTokenDocumentIndex": 8
+    }},
+    {{
+        "type": "Actor",
+        "startTokenDocumentIndex": 10,
+        "endTokenDocumentIndex": 12
+    }}
+]
 
 Extract mentions from the given text and tokens and return the output in the specified format.
-Content: {document_edit.document.content}
-Tokens: {list(map(lambda t: t.to_json(), document_edit.document.tokens))}
+Content: {content}
+Tokens: {list(map(lambda t: t.to_json(), tokens))}
                 """
 
 
@@ -209,8 +208,8 @@ class LLMEntityPrediction(LLM):
     def __init__(self, model: GptModel, temperature: float):
         super().__init__(model, temperature)
 
-    def run(self, document_edit: DocumentEdit, schema: Schema) -> str:
-        prompt: str = self._get_prompt(document_edit, schema)
+    def run(self, content: str, schema: Schema, mentions: typing.List[Mention]) -> str:
+        prompt: str = LLMEntityPrediction._get_prompt(content, schema, mentions)
         print(prompt)
         res = get_prediction(
             prompt=prompt,
@@ -221,7 +220,10 @@ class LLMEntityPrediction(LLM):
 
         return extract_json(res)
 
-    def _get_prompt(self, document_edit: DocumentEdit, schema: Schema) -> str:
+    @staticmethod
+    def _get_prompt(
+        content: str, schema: Schema, mentions: typing.List[Mention]
+    ) -> str:
         return f"""
 **Context**:
 You are an advanced text analysis assistant designed to process and analyze business-related texts. Your task is to identify entities in a given text by grouping mentions that refer to the same real-world entity. Each entity is a group of mentions that refer to the same thing in the text. The output should be in JSON format.
@@ -246,16 +248,39 @@ The output should be in a raw JSON format.
 
 **Input**
 - Text:     
-    {document_edit.document.content}
+    {content}
 - Mentions:
-    {LLMEntityPrediction._get_mention_list_string(document_edit.mentions, document_edit.document.tokens)}
+    {LLMEntityPrediction._get_mention_list_string(mentions)}
 - Mention Types:
     {LLMEntityPrediction.get_schema_mention_string(schema)}
 
         """
 
     @staticmethod
-    def _get_mention_list_string(
-        mentions: typing.List[Mention], tokens: typing.List[Token]
+    def _get_mention_list_string(mentions: typing.List[Mention]) -> str:
+        return f"{[m.to_json() for m in mentions]}"
+
+
+class LLMRelationPrediction(LLM):
+    def __init__(self, model: GptModel, temperature: float):
+        super().__init__(model, temperature)
+
+    def run(self, content: str, schema: Schema, mentions: typing.List[Mention]) -> str:
+        prompt: str = self._get_prompt(content, schema, mentions)
+        print(prompt)
+        res = get_prediction(
+            prompt=prompt,
+            model=self.model,
+            key=self.open_ai_key,
+            temperature=self.temperature,
+        )
+
+        return extract_json(res)
+
+    def _get_prompt(
+        self, content: str, schema: Schema, mentions: typing.List[Mention]
     ) -> str:
-        return f"{[m.to_json(tokens) for m in mentions]}"
+        # TODO
+        return f"""
+
+        """
