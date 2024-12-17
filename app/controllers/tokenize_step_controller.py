@@ -1,7 +1,7 @@
 import typing
 
-from flask import request, jsonify, Response
-from flask_restx import Resource
+from flask import request
+from flask_restx import Resource, ValidationError
 
 from app.model.document import CToken
 from app.pipeline.factory import TokenizeStepFactory
