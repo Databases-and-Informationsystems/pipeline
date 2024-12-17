@@ -43,23 +43,40 @@ class Mention(BaseModel):
     tokens: typing.List[Token]
     entity: typing.Optional[Entity] = None
 
-    def to_json(self):
+    def to_dict(self) -> typing.Dict[str, typing.Any]:
         sorted_tokens_with_content = sorted(
             self.tokens,
             key=lambda t: t.document_index,
         )
 
+        return {
+            "id": self.id,
+            "tag": self.tag,
+            "start_token_id": sorted_tokens_with_content[0].id,
+            "end_token_id": sorted_tokens_with_content[-1].id,
+            "text": " ".join(list(map(lambda t: t.text, sorted_tokens_with_content))),
+        }
+
+    def to_json(self):
         return json.dumps(
-            {
-                "id": self.id,
-                "tag": self.tag,
-                "start_token_id": sorted_tokens_with_content[0].id,
-                "end_token_id": sorted_tokens_with_content[-1].id,
-                "text": " ".join(
-                    list(map(lambda t: t.text, sorted_tokens_with_content))
-                ),
-            }
+            self.to_dict(),
         )
+
+
+class CEntity(BaseModel):
+    mentions: typing.List[Mention]
+
+    def to_dict(self) -> typing.Dict[str, typing.Any]:
+        return {
+            "mentions": [mention.to_dict() for mention in self.mentions],
+        }
+
+    def to_json(self, default: str) -> str:
+        print(default or "Mentions:")
+        for mention in self.mentions:
+            print(mention.to_json())
+            print(mention)
+        return json.dumps(self.to_dict())
 
 
 class Relation(BaseModel):

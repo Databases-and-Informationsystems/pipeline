@@ -7,36 +7,28 @@ from app.model.document import CToken
 from app.pipeline.factory import TokenizeStepFactory
 from app.restx_dtos import tokenize_step_input, tokenize_step_output
 
-from . import steps_ns
+from . import steps_ns as ns
 from ..pipeline.steps.tokenizer import TokenizeStep
 
 
-@steps_ns.route("/tokenize")
-@steps_ns.response(400, "Invalid input")
-@steps_ns.response(403, "Authorization required")
-@steps_ns.response(404, "Data not found")
-@steps_ns.response(500, "Internal server error")
+@ns.route("/tokenize")
 class TokenizeStepController(Resource):
 
-    @steps_ns.doc(
-        description="Execute the tokenize step of the pipeline.",
-        responses={
-            200: ("Successful response", tokenize_step_output),
-            500: "Internal Server Error",
-        },
-    )
-    @steps_ns.expect(tokenize_step_input, validate=True)
+    @ns.expect(tokenize_step_input, validate=True)
+    @ns.marshal_with(tokenize_step_output, as_list=True, code=200)
+    @ns.response(400, "Invalid input")
+    @ns.response(500, "Internal server error")
     def post(self):
         """
         Tokenize a document based on the provided input.
         """
-        try:
-            tokenizer: TokenizeStep = TokenizeStepFactory.create()
+        tokenizer: TokenizeStep = TokenizeStepFactory.create()
 
-            content = request.get_json().get("content")
+        content = request.get_json().get("content")
 
-            tokens: typing.List[CToken] = tokenizer.run(content=content)
+        if content is None:
+            raise ValidationError("Content is required")
 
-            return jsonify([token.model_dump(mode="json") for token in tokens])
-        except Exception as e:
-            return Response(str(e), status=500)
+        tokens: typing.List[CToken] = tokenizer.run(content=content)
+
+        return [token.model_dump(mode="json") for token in tokens]

@@ -3,7 +3,7 @@ import typing
 from abc import ABC, abstractmethod
 
 from app.pipeline.models.llm import GptModel, LLMRelationPrediction
-from app.model.document import Mention
+from app.model.document import Mention, CEntity
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 
@@ -42,7 +42,9 @@ class RelationPrediction(RelationStep):
     def _train(self):
         pass
 
-    def _run(self, content: str, schema: Schema, mentions: typing.List[Mention]) -> any:
+    def _run(
+        self, content: str, schema: Schema, mentions: typing.List[Mention]
+    ) -> typing.List[CEntity]:
 
         llm_entity_detection = LLMRelationPrediction(
             model=self.model, temperature=self.temperature

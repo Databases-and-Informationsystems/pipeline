@@ -119,10 +119,6 @@ new_mention = api.model(
     },
 )
 
-mention_step_output = api.model(
-    "MentionOutput",
-    {"mentions": fields.List(fields.Nested(new_mention), required=True)},
-)
 
 ### --------------------------------------------------------------------------------------------------------------------
 # Entity detection
@@ -133,20 +129,28 @@ entity_step_input = api.model(
     {
         "schema": fields.Nested(schema_input_for_mentions, required=True),
         "content": fields.String(required=True),
-        "Mentions": fields.List(fields.Nested(mention_input)),
+        "mentions": fields.List(fields.Nested(mention_input)),
     },
 )
 
 entity_step_output = api.model(
     "EntityOutput",
     {
-        "grouped_mentions": fields.List(
-            fields.List(
-                fields.Integer,
-                description="List of all mentions that are grouped as one entity",
+        "mentions": fields.List(
+            fields.Nested(
+                api.model(
+                    "mapped_mention",
+                    {
+                        "id": fields.Integer(required=True),
+                        "tag": fields.String(required=True),
+                        "start_token_id": fields.Integer(),
+                        "end_token_id": fields.Integer(),
+                        "text": fields.String(),
+                    },
+                ),
             ),
-            description="All grouped Mention Ids",
-        )
+            required=True,  # Ensure the list itself is required
+        ),
     },
 )
 
@@ -169,12 +173,5 @@ relation_step_input = api.model(
         "schema": fields.Nested(schema_input_for_relations, required=True),
         "content": fields.String(required=True),
         "mentions": fields.List(fields.Nested(mention_input), required=True),
-    },
-)
-
-relation_step_output = api.model(
-    "RelationOutput",
-    {
-        "relations": fields.List(fields.Nested(new_relation), required=True),
     },
 )
