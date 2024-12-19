@@ -5,12 +5,13 @@ from flask import request
 from flask_restx import Resource
 from pydantic import TypeAdapter
 
-from . import steps_ns as ns
+from . import steps_ns as ns, caching_enabled, get_document_id
 from ..model.document import Token, CMention
 from ..model.schema import Schema
 from ..pipeline.factory import MentionStepFactory
 from ..pipeline.steps.mention_prediction import MentionStep
 from ..restx_dtos import mention_step_input, new_mention
+from ..util.file import read_json_from_file, create_file_from_data
 
 
 @ns.route("/mention")
@@ -39,8 +40,24 @@ class MentionStepController(Resource):
             settings=None,
         )
 
+        document_id = get_document_id(data)
+
+        if caching_enabled():
+            cached_res = read_json_from_file(
+                mention_pipeline_step.pipeline_step_type, document_id
+            )
+            if cached_res is not None:
+                return cached_res
+
         mentions: typing.List[CMention] = mention_pipeline_step.run(
             tokens=tokens, content=content, schema=schema
         )
 
-        return [mention.model_dump(mode="json") for mention in mentions]
+        res = [mention.model_dump(mode="json") for mention in mentions]
+
+        if caching_enabled():
+            create_file_from_data(
+                res, mention_pipeline_step.pipeline_step_type, document_id
+            )
+
+        return res
