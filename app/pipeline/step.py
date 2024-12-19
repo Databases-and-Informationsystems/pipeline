@@ -1,11 +1,5 @@
 import abc
-import typing
-from abc import abstractmethod
 from enum import Enum
-from typing import final
-
-from app.model.document import DocumentEdit
-from app.model.schema import Schema
 
 
 class PipelineStepType(Enum):
@@ -31,19 +25,6 @@ class PipelineStep(abc.ABC):
     def name(self):
         return self._name
 
-    @final
-    def run(self, document_edit: DocumentEdit, schema: Schema) -> DocumentEdit:
-        res = self._run(document_edit, schema)
-        return res
-
-    @final
-    def train(self):
-        self._train()
-
-    @abstractmethod
-    def _run(self, document_edit: DocumentEdit, schema: Schema) -> DocumentEdit:
-        pass
-
-    @abstractmethod
-    def _train(self):
-        pass
+    @property
+    def pipeline_step_type(self) -> PipelineStepType:
+        return self._pipeline_step_type

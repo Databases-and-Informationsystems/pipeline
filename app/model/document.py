@@ -5,12 +5,15 @@ from enum import Enum
 from pydantic import BaseModel
 
 
-class Token(BaseModel):
-    id: typing.Optional[int] = None
+class CToken(BaseModel):
     text: typing.Optional[str] = None
     document_index: typing.Optional[int] = None
     sentence_index: typing.Optional[int] = None
     pos_tag: typing.Optional[str] = None
+
+
+class Token(CToken):
+    id: typing.Optional[int] = None
 
     def to_json(self) -> str:
         return json.dumps(
@@ -28,39 +31,52 @@ class Entity(BaseModel):
     id: int
 
 
+class CMention(BaseModel):
+    type: str
+    startTokenDocumentIndex: int
+    endTokenDocumentIndex: int
+
+
 class Mention(BaseModel):
-    id: typing.Optional[int] = None
+    id: typing.Optional[int]
     tag: str
     tokens: typing.List[Token]
     entity: typing.Optional[Entity] = None
 
-    def to_json(self, tokens: typing.List[Token]):
-        tokens_with_content = list(
-            map(
-                lambda token: next((t for t in tokens if t.id == token.id), None),
-                self.tokens,
-            )
-        )
-        if any(t is None for t in tokens_with_content):
-            raise ValueError(
-                "The token of an mention is not part of the token list of the document"
-            )
+    def to_dict(self) -> typing.Dict[str, typing.Any]:
         sorted_tokens_with_content = sorted(
-            tokens_with_content,
+            self.tokens,
             key=lambda t: t.document_index,
         )
 
+        return {
+            "id": self.id,
+            "tag": self.tag,
+            "start_token_id": sorted_tokens_with_content[0].id,
+            "end_token_id": sorted_tokens_with_content[-1].id,
+            "text": " ".join(list(map(lambda t: t.text, sorted_tokens_with_content))),
+        }
+
+    def to_json(self):
         return json.dumps(
-            {
-                "id": self.id,
-                "tag": self.tag,
-                "start_token_id": sorted_tokens_with_content[0].id,
-                "end_token_id": sorted_tokens_with_content[-1].id,
-                "text": " ".join(
-                    list(map(lambda t: t.text, sorted_tokens_with_content))
-                ),
-            }
+            self.to_dict(),
         )
+
+
+class CEntity(BaseModel):
+    mentions: typing.List[Mention]
+
+    def to_dict(self) -> typing.Dict[str, typing.Any]:
+        return {
+            "mentions": [mention.to_dict() for mention in self.mentions],
+        }
+
+    def to_json(self, default: str) -> str:
+        print(default or "Mentions:")
+        for mention in self.mentions:
+            print(mention.to_json())
+            print(mention)
+        return json.dumps(self.to_dict())
 
 
 class Relation(BaseModel):
@@ -82,31 +98,3 @@ class Document(BaseModel):
     content: str
     state: typing.Optional[DocumentState] = None
     tokens: typing.Optional[typing.List[Token]] = None
-
-
-class DocumentEditState(Enum):
-    MENTIONS = 1
-    ENTITIES = 2
-    RELATIONS = 3
-    FINISHED = 4
-
-    def to_dict(self):
-        if self.MENTIONS:
-            return "MENTIONS"
-        elif self.ENTITIES:
-            return "ENTITIES"
-        elif self.RELATIONS:
-            return "RELATIONS"
-        elif self.FINISHED:
-            return "FINISHED"
-
-
-class DocumentEdit(BaseModel):
-    document: Document
-    state: typing.Optional[DocumentEditState] = None
-    mentions: typing.Optional[typing.List[Mention]] = None
-    relations: typing.Optional[typing.List[Relation]] = None
-    entities: typing.Optional[typing.List[Entity]] = None
-
-    class Config:
-        from_attributes = True
