@@ -71,11 +71,7 @@ class CEntity(BaseModel):
             "mentions": [mention.to_dict() for mention in self.mentions],
         }
 
-    def to_json(self, default: str) -> str:
-        print(default or "Mentions:")
-        for mention in self.mentions:
-            print(mention.to_json())
-            print(mention)
+    def to_json(self) -> str:
         return json.dumps(self.to_dict())
 
 

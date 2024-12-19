@@ -6,12 +6,13 @@ from flask import request, jsonify, Response
 from flask_restx import Resource
 from pydantic import TypeAdapter
 
-from . import steps_ns as ns
+from . import steps_ns as ns, caching_enabled, get_document_id
 from ..model.document import Mention, CEntity
 from ..model.schema import Schema
 from ..pipeline.factory import EntityStepFactory
 from ..pipeline.steps.entity_prediction import EntityStep
 from ..restx_dtos import entity_step_output, entity_step_input
+from ..util.file import read_json_from_file, create_file_from_data
 
 
 @ns.route("/entity")
@@ -42,12 +43,22 @@ class EntityStepController(Resource):
             settings=None,
         )
 
+        document_id = get_document_id(data)
+
+        if caching_enabled():
+            cached_res = read_json_from_file(
+                entity_step.pipeline_step_type, document_id
+            )
+            if cached_res is not None:
+                return cached_res
+
         entities: typing.List[CEntity] = entity_step.run(
             content=content, schema=schema, mentions=mentions
         )
 
-        for entity in entities:
-            print("ENTITY")
-            print(entity.to_json("1. Test"))
-            entity.mentions = entity.mentions or []
-        return jsonify(list(map(lambda e: e.to_dict(), entities)))
+        res = [e.to_dict() for e in entities]
+
+        if caching_enabled():
+            create_file_from_data(res, entity_step.pipeline_step_type, document_id)
+
+        return res

@@ -165,3 +165,7 @@ cython_debug/
 
 # Ignore macOS metadata files
 .DS_Store
+
+
+# Project specific files / folders
+/uploads

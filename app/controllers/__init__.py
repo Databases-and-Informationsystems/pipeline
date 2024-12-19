@@ -1,4 +1,6 @@
-from flask import Blueprint
+import typing
+
+from flask import Blueprint, current_app
 from flask_restx import Api, Namespace
 
 main = Blueprint("main", __name__, url_prefix="/pipeline")
@@ -10,6 +12,20 @@ api = Api(
     doc="/docs",
     serve_path="/pipeline",  # available via /pipeline/docs
 )
+
+
+def caching_enabled():
+    return current_app.config["CACHING"]
+
+
+def get_document_id(data: any) -> typing.Optional[str]:
+    document_id = None
+    if caching_enabled():
+        document_id = data.get("document_id")
+        if document_id is None:
+            raise ValueError("`document_id` is required with caching enabled")
+    return document_id
+
 
 # /steps/...
 steps_ns: Namespace = Namespace("steps", description="Execute single pipeline steps")

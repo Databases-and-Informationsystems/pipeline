@@ -5,12 +5,13 @@ from flask import request, jsonify
 from flask_restx import Resource
 from pydantic import TypeAdapter
 
-from . import steps_ns as ns
+from . import steps_ns as ns, get_document_id, caching_enabled
 from ..model.document import Mention
 from ..model.schema import Schema
 from ..pipeline.factory import RelationStepFactory
 from ..pipeline.steps.relation_prediction import RelationStep
 from ..restx_dtos import relation_step_input, new_relation
+from ..util.file import read_json_from_file, create_file_from_data
 
 
 @ns.route("/relation")
@@ -39,10 +40,23 @@ class RelationStepController(Resource):
             settings=None,
         )
 
-        # TODO
+        document_id = get_document_id(data)
+
+        if caching_enabled():
+            cached_res = read_json_from_file(
+                relation_pipeline_step.pipeline_step_type, document_id
+            )
+            if cached_res is not None:
+                return cached_res
+
+        # TODO convert result to correct format for file / result
         res: any = relation_pipeline_step.run(
             content=content, schema=schema, mentions=mentions
         )
 
-        # TODO
-        return jsonify(res)
+        if caching_enabled():
+            create_file_from_data(
+                res, relation_pipeline_step.pipeline_step_type, document_id
+            )
+
+        return res
