@@ -3,10 +3,10 @@ from enum import Enum
 
 
 class PipelineStepType(Enum):
-    TOKENIZER = 1
-    MENTION_PREDICTION = 2
-    ENTITY_PREDICTION = 3
-    RELATION_PREDICTION = 4
+    TOKENIZER = "tokenizer"
+    MENTION_PREDICTION = "mention_prediction"
+    ENTITY_PREDICTION = "entity_prediction"
+    RELATION_PREDICTION = "relation_prediction"
 
 
 class PipelineStep(abc.ABC):
