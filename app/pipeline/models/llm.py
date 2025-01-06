@@ -31,6 +31,27 @@ class LLM(ABC):
             )
         )
 
+    @staticmethod
+    def get_schema_relation_string(schema: Schema) -> str:
+        return "\n".join(
+            f'"{schema_relation.tag}": {schema_relation.description}'
+            for schema_relation in schema.schema_relations
+        )
+
+    @staticmethod
+    def get_schema_constraint_string(schema: Schema) -> str:
+        return "\n".join(
+            f"""
+{{
+    relation: {schema_constraint.schema_relation.tag},
+    head_mention: {schema_constraint.schema_mention_head.tag}
+    tail_mention: {schema_constraint.schema_mention_tail.tag}
+    is_directed: {schema_constraint.is_directed}
+}}
+"""
+            for schema_constraint in schema.schema_constraints
+        )
+
 
 class LLMMentionPrediction(LLM):
     def __init__(self, model: GptModel, temperature: float):
@@ -280,7 +301,47 @@ class LLMRelationPrediction(LLM):
     def _get_prompt(
         self, content: str, schema: Schema, mentions: typing.List[Mention]
     ) -> str:
-        # TODO
         return f"""
+**Context**:
+You are an advanced text analysis assistant designed to process and analyze business-related texts. Your task is to identify relations between mentions with a given text and given mentions. A relation describes a specific relationship between 2 mentions. The output should be in JSON format.
 
+**Input Specification**:
+- **Text**: A passage of text (string).
+- **Mentions**: A JSON array of objects. Each object represents a mention in the text and contains:
+    - id: Unique identifier for the mention.
+    - tag: Type of the mention.
+    - start_token_id: The id of the first token of the mention.
+    - end_token_id: The id after the last token of the mention.
+    - text: The exact text of the mention.
+- **Mention Types**: A JSON array of the different mention types with a description of each type:    
+    - tag: Name of the mention type.
+    - description: The description of the mention type.
+- **Relation Types**: A JSON array of the different relation types with a description of each type:
+    - tag: Name of the relation type.
+    - description: The description of the relation type.
+- **Constraints**: A JSON array of constraints. Each Relation in the result must match a constraint from this array:
+    - relation: The tag of the relation.
+    - head_mention: The type of the mention that is allowed at the head of the relation.
+    - tail_mention: The type of the mention that is allowed at the tail of the relation.
+    - is_directed: "true", if head_mention and tail_mention can be changed
+    
+**Output Specification**:
+    - You must return a JSON array containing relations. Each relation contains of a 'tag' (relates to the tag of a relation type), 'head_mention_id' (relates to the id of a mention from the input list), 'tail_mention_id' (relates to the id of a mention from the input list).
+        - Each entry in the array must fulfill at least one constraint.
+        
+**Input**
+- Text:
+    {content}
+- Mentions:
+    {LLMRelationPrediction._get_mention_list_string(mentions)}
+- Mention Types:
+    {LLMRelationPrediction.get_schema_mention_string(schema)}
+- Relation Types:
+    {LLMRelationPrediction.get_schema_relation_string(schema)}
+- Constraints
+    {LLMRelationPrediction.get_schema_constraint_string(schema)}
         """
+
+    @staticmethod
+    def _get_mention_list_string(mentions: typing.List[Mention]) -> str:
+        return f"{[m.to_json() for m in mentions]}"

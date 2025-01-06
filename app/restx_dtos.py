@@ -161,9 +161,9 @@ entity_step_output = api.model(
 new_relation = api.model(
     "NewRelation",
     {
-        "type": fields.String(required=True),
-        "mention_head_id": fields.Integer(required=True),
-        "mention_tail_id": fields.Integer(required=True),
+        "tag": fields.String(required=True),
+        "head_mention_id": fields.Integer(required=True),
+        "tail_mention_id": fields.Integer(required=True),
     },
 )
 
