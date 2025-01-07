@@ -21,12 +21,12 @@ class RelationTrainController(Resource):
     @ns.doc(
         params={
             "model_type": {
-                "description": f"Model size (default: {TrainModelType.get_default().value})",
+                "description": f"Model type (default: {TrainModelType.get_default().value})",
                 "required": False,
                 "enum": [model_size.value for model_size in TrainModelType],
             },
             "model_size": {
-                "description": f"Model type (default: {ModelSize.get_default().value})",
+                "description": f"Model size (default: {ModelSize.get_default().value})",
                 "required": False,
                 "enum": [model_size.value for model_size in ModelSize],
             },
