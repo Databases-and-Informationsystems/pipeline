@@ -14,6 +14,7 @@ class SchemaMention(BaseModel):
 class SchemaRelation(BaseModel):
     id: typing.Optional[int] = None
     tag: str
+    description: str
 
 
 class SchemaConstraint(BaseModel):
