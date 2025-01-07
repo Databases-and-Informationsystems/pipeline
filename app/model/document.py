@@ -94,3 +94,5 @@ class Document(BaseModel):
     content: str
     state: typing.Optional[DocumentState] = None
     tokens: typing.Optional[typing.List[Token]] = None
+    entitys: typing.Optional[typing.List[Entity]] = None
+    relations: typing.Optional[typing.List[Relation]] = None

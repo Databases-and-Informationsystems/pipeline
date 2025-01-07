@@ -50,3 +50,34 @@ class Temperature(Enum):
 
         else:
             raise ValueError(f"Unknown temperature: {value}")
+
+
+class TrainModelType(Enum):
+    BASIC_NEURAL_NETWORK = "basic_nn"
+
+    @staticmethod
+    def get_default():
+        return TrainModelType.BASIC_NEURAL_NETWORK
+
+
+class ModelSize(Enum):
+    SMALL = "small"
+    MEDIUM = "medium"
+    BIG = "big"
+
+    @staticmethod
+    def get_default():
+        return ModelSize.MEDIUM
+
+    @staticmethod
+    def from_string(value: str) -> "ModelSize":
+        value = value.lower()
+        if value == "small":
+            return ModelSize.SMALL
+        elif value == "medium":
+            return ModelSize.MEDIUM
+        elif value == "big":
+            return ModelSize.BIG
+
+        else:
+            raise ValueError(f"Unknown temperature: {value}")
