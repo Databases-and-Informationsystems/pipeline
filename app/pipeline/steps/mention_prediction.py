@@ -2,6 +2,7 @@ import json
 import typing
 from abc import ABC, abstractmethod
 
+from app.model.settings import Temperature
 from app.pipeline.models.llm import GptModel, LLMMentionPrediction
 from app.model.document import CMention, Token
 from app.model.schema import Schema
@@ -9,6 +10,7 @@ from app.pipeline.step import PipelineStep, PipelineStepType
 
 
 class MentionStep(PipelineStep, ABC):
+    model_types = ["llm"]
 
     def __init__(
         self,
@@ -29,13 +31,13 @@ class MentionStep(PipelineStep, ABC):
         pass
 
 
-class MentionPrediction(MentionStep):
-    temperature: float
+class LLMMentionStep(MentionStep):
+    temperature: Temperature
     model: GptModel
 
     def __init__(
         self,
-        temperature: float,
+        temperature: Temperature,
         model: GptModel,
         name: str = "MentionPrediction",
     ):

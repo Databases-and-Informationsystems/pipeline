@@ -2,9 +2,6 @@
 POST http://localhost/pipeline/steps/tokenize
 Content-Type: application/json
 
-{
-    "document_id": "1",
-    "content": "The MSPN registers the measurement at the GO. The GO examines the application of the MSPN. The GO rejects the application of the MSPN or the GO confirmes the application of the MSPN. The GO assigns the MSPN. The GO informs the MSPO about the assignment of MSPN. The GO informs the MPO about the assignment of the MSPN. The GO informs the SP about the assignment of MSPN."
-}
+< ./test-inputs/tokenize-input-1.json
 
 ###

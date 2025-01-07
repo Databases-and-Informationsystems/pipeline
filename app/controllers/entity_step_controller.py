@@ -1,14 +1,14 @@
 import json
-import traceback
 import typing
 
-from flask import request, jsonify, Response
+from flask import request
 from flask_restx import Resource
 from pydantic import TypeAdapter
 
 from . import steps_ns as ns, caching_enabled, get_document_id
 from ..model.document import Mention, CEntity
 from ..model.schema import Schema
+from ..model.settings import GptModel, Temperature
 from ..pipeline.factory import EntityStepFactory
 from ..pipeline.steps.entity_prediction import EntityStep
 from ..restx_dtos import entity_step_output, entity_step_input
@@ -21,6 +21,25 @@ class EntityStepController(Resource):
     @ns.expect(entity_step_input, validate=True)
     # TODO fix this
     # @ns.marshal_with(entity_step_output, as_list=True, code=200)
+    @ns.doc(
+        params={
+            "model_type": {
+                "description": "Recommendation System that should be used.",
+                "required": True,
+                "enum": ["llm"],
+            },
+            "model": {
+                "description": f"Open AI model (default: {GptModel.get_default().value})",
+                "required": False,
+                "enum": [model.value for model in GptModel],
+            },
+            "temperature": {
+                "description": f"Temperature of the Open AI model (default: {Temperature.get_default().value})",
+                "required": False,
+                "enum": [temperature.value for temperature in Temperature],
+            },
+        }
+    )
     @ns.response(400, "Invalid input")
     @ns.response(500, "Internal server error")
     def post(self):
@@ -29,7 +48,6 @@ class EntityStepController(Resource):
         """
 
         data = request.get_json()
-        # print(data)
         content = data.get("content")
         mentions_data = data.get("mentions")
         schema_data = data.get("schema")
@@ -39,8 +57,15 @@ class EntityStepController(Resource):
         ]
         schema = TypeAdapter(Schema).validate_json(json.dumps(schema_data))
 
+        if request.args.get("model_type") is None:
+            raise ValueError("'model_type' parameter is required")
+
         entity_step: EntityStep = EntityStepFactory.create(
-            settings=None,
+            settings={
+                "model_type": request.args.get("model_type"),
+                "model": request.args.get("model"),
+                "temperature": request.args.get("temperature"),
+            },
         )
 
         document_id = get_document_id(data)

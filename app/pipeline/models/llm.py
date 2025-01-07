@@ -4,7 +4,7 @@ from abc import ABC
 
 from app.model.document import Token, Mention
 from app.model.schema import Schema
-from app.model.settings import GptModel
+from app.model.settings import GptModel, Temperature
 from app.util.llm_util import get_prediction, extract_json
 
 
@@ -13,9 +13,11 @@ class LLM(ABC):
     model: GptModel = GptModel.GPT_4O_MINI
     open_ai_key: str
 
-    def __init__(self, model: GptModel = GptModel.GPT_4O_MINI, temperature=0.0):
+    def __init__(
+        self, model: GptModel = GptModel.GPT_4O_MINI, temperature=Temperature.NONE
+    ):
         self.model = model
-        self.temperature = temperature
+        self.temperature = temperature.to_float()
 
         self.open_ai_key = os.getenv("OPENAI_API_KEY")
         if self.open_ai_key is None:
@@ -54,12 +56,12 @@ class LLM(ABC):
 
 
 class LLMMentionPrediction(LLM):
-    def __init__(self, model: GptModel, temperature: float):
+    def __init__(self, model: GptModel, temperature: Temperature):
         super().__init__(model, temperature)
 
     def run(self, content: str, schema: Schema, tokens: typing.List[Token]) -> str:
         prompt: str = LLMMentionPrediction._get_prompt(content, schema, tokens)
-        print(prompt)
+        print(prompt, flush=True)
         res = get_prediction(
             prompt=prompt,
             model=self.model,
@@ -226,12 +228,12 @@ Tokens: {list(map(lambda t: t.to_json(), tokens))}
 
 
 class LLMEntityPrediction(LLM):
-    def __init__(self, model: GptModel, temperature: float):
+    def __init__(self, model: GptModel, temperature: Temperature):
         super().__init__(model, temperature)
 
     def run(self, content: str, schema: Schema, mentions: typing.List[Mention]) -> str:
         prompt: str = LLMEntityPrediction._get_prompt(content, schema, mentions)
-        print(prompt)
+        print(prompt, flush=True)
         res = get_prediction(
             prompt=prompt,
             model=self.model,
@@ -283,7 +285,7 @@ The output should be in a raw JSON format.
 
 
 class LLMRelationPrediction(LLM):
-    def __init__(self, model: GptModel, temperature: float):
+    def __init__(self, model: GptModel, temperature: Temperature):
         super().__init__(model, temperature)
 
     def run(self, content: str, schema: Schema, mentions: typing.List[Mention]) -> str:

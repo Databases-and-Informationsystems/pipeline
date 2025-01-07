@@ -2,6 +2,7 @@ import json
 import typing
 from abc import ABC, abstractmethod
 
+from app.model.settings import Temperature
 from app.pipeline.models.llm import GptModel, LLMEntityPrediction
 from app.model.document import Mention, CEntity
 from app.model.schema import Schema
@@ -30,12 +31,12 @@ class EntityStep(PipelineStep, ABC):
 
 
 class EntityPrediction(EntityStep):
-    temperature: float
+    temperature: Temperature
     model: GptModel
 
     def __init__(
         self,
-        temperature: float,
+        temperature: Temperature,
         model: GptModel,
         name: str = "MentionPrediction",
     ):
