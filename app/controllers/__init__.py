@@ -42,9 +42,8 @@ train_nn_ns: Namespace = Namespace(
     "train_nn", description="Train own neural networks for certain schemas"
 )
 
-from .entity_train_nn_controller import EntityTrainNNController
-from .mention_train_nn_controller import MentionTrainNNController
-from .relation_train_nn_controller import RelationTrainNNController
+from .entity_train_controller import EntityTrainController
+from .mention_train_controller import MentionTrainController
+from .relation_train_controller import RelationTrainController
 
-
-api.add_namespace(train_nn_ns, path="/train_nn")
+api.add_namespace(train_nn_ns, path="/train")

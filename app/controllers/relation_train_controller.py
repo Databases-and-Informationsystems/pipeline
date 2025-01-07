@@ -12,14 +12,14 @@ from ..model.settings import ModelSize, TrainModelType
 from ..train.factory import RelationTrainerFactory
 from ..pipeline.steps.entity_prediction import EntityStep
 from ..train.trainers.relation_trainer import RelationTrainer
-from ..restx_dtos import train_entity_nn_input
+from ..restx_dtos import train_entity_input
 from ..util.file import read_json_from_file, create_file_from_data
 
 
 @ns.route("/relation")
-class RelationTrainNNController(Resource):
+class RelationTrainController(Resource):
 
-    @ns.expect(train_entity_nn_input, validate=True)
+    @ns.expect(train_entity_input, validate=True)
     @ns.doc(
         params={
             "model_type": {

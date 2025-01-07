@@ -9,16 +9,18 @@ from . import train_nn_ns as ns, caching_enabled, get_document_id
 from ..model.document import Mention, CEntity, Document
 from ..model.schema import Schema
 from ..model.settings import ModelSize, TrainModelType
-from ..train.factory import EntityTrainerFactory
-from ..train.trainers.entity_trainer import EntityTrainer
-from ..restx_dtos import train_entity_nn_input
+from ..pipeline.factory import EntityStepFactory
+from ..train.factory import MentionTrainerFactory
+from ..pipeline.steps.entity_prediction import EntityStep
+from ..train.trainers.mention_trainer import MentionTrainer
+from ..restx_dtos import train_entity_input
 from ..util.file import read_json_from_file, create_file_from_data
 
 
-@ns.route("/entity")
-class EntityTrainNNController(Resource):
+@ns.route("/mention")
+class MentionTrainController(Resource):
 
-    @ns.expect(train_entity_nn_input, validate=True)
+    @ns.expect(train_entity_input, validate=True)
     @ns.doc(
         params={
             "model_type": {
@@ -42,7 +44,7 @@ class EntityTrainNNController(Resource):
     @ns.response(500, "Internal server error")
     def post(self):
         """
-        Train neural network for entity detection.
+        Train neural network for mention detection.
         """
 
         data = request.get_json()
@@ -57,7 +59,7 @@ class EntityTrainNNController(Resource):
         schema = TypeAdapter(Schema).validate_json(json.dumps(schema_data))
         evaluate = request.args.get("enable_evaluation", "false").lower() == "true"
 
-        entity_trainer: EntityTrainer = EntityTrainerFactory.create(
+        mention_trainer: MentionTrainer = MentionTrainerFactory.create(
             settings={
                 "model_size": request.args.get("model_size"),
                 "model_type": request.args.get("model_type"),
@@ -65,6 +67,6 @@ class EntityTrainNNController(Resource):
             }
         )
 
-        entity_trainer.train(documents=documents, schema=schema)
+        mention_trainer.train(documents=documents, schema=schema)
 
         return "hallo"
