@@ -39,7 +39,7 @@ api.add_namespace(steps_ns, path="/steps")
 
 # /train_nn/...
 train_nn_ns: Namespace = Namespace(
-    "train_nn", description="Train own neural networks for certain schemas"
+    "train", description="Train own neural networks for certain schemas"
 )
 
 from .entity_train_controller import EntityTrainController
