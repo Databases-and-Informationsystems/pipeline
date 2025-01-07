@@ -5,14 +5,13 @@ from flask import request
 from flask_restx import Resource
 from pydantic import TypeAdapter
 
-from . import train_nn_ns as ns, caching_enabled, get_document_id
-from ..model.document import Mention, CEntity, Document
+from . import train_nn_ns as ns
+from ..model.document import Document
 from ..model.schema import Schema
 from ..model.settings import ModelSize, TrainModelType
 from ..train.factory import EntityTrainerFactory
 from ..train.trainers.entity_trainer import EntityTrainer
 from ..restx_dtos import train_entity_input
-from ..util.file import read_json_from_file, create_file_from_data
 
 
 @ns.route("/entity")
