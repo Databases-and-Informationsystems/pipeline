@@ -25,6 +25,41 @@ mention_input = api.model(
     },
 )
 
+entity_input = api.model(
+    "Entity",
+    {
+        "id": fields.Integer(required=True),
+        "tag": fields.String(required=True),
+        "mentions": fields.List(fields.Nested(mention_input, required=True)),
+    },
+)
+
+relation_input = api.model(
+    "Relation",
+    {
+        "id": fields.Integer(required=True),
+        "tag": fields.String(required=True),
+        "head_mention": fields.Nested(mention_input, required=True),
+        "tail_mention": fields.Nested(mention_input, required=True),
+    },
+)
+
+### --------------------------------------------------------------------------------------------------------------------
+# train neural network sub -inputs
+### --------------------------------------------------------------------------------------------------------------------
+
+document = api.model(
+    "MentionDocument",
+    {
+        "id": fields.Integer(required=False),
+        "content": fields.String(required=True),
+        "tokens": fields.List(fields.Nested(token_input)),
+        "mentions": fields.List(fields.Nested(mention_input)),
+        "entitys": fields.List(fields.Nested(entity_input)),
+        "relations": fields.List(fields.Nested(relation_input)),
+    },
+)
+
 ### --------------------------------------------------------------------------------------------------------------------
 # Schema
 ### --------------------------------------------------------------------------------------------------------------------
@@ -173,5 +208,16 @@ relation_step_input = api.model(
         "schema": fields.Nested(schema_input_for_relations, required=True),
         "content": fields.String(required=True),
         "mentions": fields.List(fields.Nested(mention_input), required=True),
+    },
+)
+### --------------------------------------------------------------------------------------------------------------------
+# Train Entity neural network
+### --------------------------------------------------------------------------------------------------------------------
+
+train_entity_nn_input = api.model(
+    "TrainEntityNNInput",
+    {
+        "schema": fields.Nested(schema_input_for_relations, required=True),
+        "documents": fields.List(fields.Nested(document)),
     },
 )

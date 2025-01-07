@@ -36,3 +36,15 @@ from .relation_step_controller import RelationStepController
 
 
 api.add_namespace(steps_ns, path="/steps")
+
+# /train_nn/...
+train_nn_ns: Namespace = Namespace(
+    "train_nn", description="Train own neural networks for certain schemas"
+)
+
+from .entity_train_nn_controller import EntityTrainNNController
+from .mention_train_nn_controller import MentionTrainNNController
+from .relation_train_nn_controller import RelationTrainNNController
+
+
+api.add_namespace(train_nn_ns, path="/train_nn")
