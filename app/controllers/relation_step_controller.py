@@ -1,13 +1,14 @@
 import json
 import typing
 
-from flask import request, jsonify
+from flask import request
 from flask_restx import Resource
 from pydantic import TypeAdapter
 
 from . import steps_ns as ns, get_document_id, caching_enabled
 from ..model.document import Mention
 from ..model.schema import Schema
+from ..model.settings import GptModel, Temperature
 from ..pipeline.factory import RelationStepFactory
 from ..pipeline.steps.relation_prediction import RelationStep
 from ..restx_dtos import relation_step_input, new_relation
@@ -19,6 +20,25 @@ class RelationStepController(Resource):
 
     @ns.expect(relation_step_input, validate=True)
     @ns.marshal_with(new_relation, as_list=True, code=200)
+    @ns.doc(
+        params={
+            "model_type": {
+                "description": "Recommendation System that should be used.",
+                "required": True,
+                "enum": ["llm"],
+            },
+            "model": {
+                "description": f"Open AI model (default: {GptModel.get_default().value})",
+                "required": False,
+                "enum": [model.value for model in GptModel],
+            },
+            "temperature": {
+                "description": f"Temperature of the Open AI model (default: {Temperature.get_default().value})",
+                "required": False,
+                "enum": [temperature.value for temperature in Temperature],
+            },
+        }
+    )
     @ns.response(400, "Invalid input")
     @ns.response(500, "Internal server error")
     def post(self):
@@ -36,8 +56,15 @@ class RelationStepController(Resource):
         ]
         schema = TypeAdapter(Schema).validate_json(json.dumps(schema_data))
 
+        if request.args.get("model_type") is None:
+            raise ValueError("'model_type' parameter is required")
+
         relation_pipeline_step: RelationStep = RelationStepFactory.create(
-            settings=None,
+            settings={
+                "model_type": request.args.get("model_type"),
+                "model": request.args.get("model"),
+                "temperature": request.args.get("temperature"),
+            },
         )
 
         document_id = get_document_id(data)

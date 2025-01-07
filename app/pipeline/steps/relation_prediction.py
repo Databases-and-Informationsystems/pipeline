@@ -2,6 +2,7 @@ import json
 import typing
 from abc import ABC, abstractmethod
 
+from app.model.settings import Temperature
 from app.pipeline.models.llm import GptModel, LLMRelationPrediction
 from app.model.document import Mention, CEntity
 from app.model.schema import Schema
@@ -26,12 +27,12 @@ class RelationStep(PipelineStep, ABC):
 
 
 class RelationPrediction(RelationStep):
-    temperature: float
+    temperature: Temperature
     model: GptModel
 
     def __init__(
         self,
-        temperature: float,
+        temperature: Temperature,
         model: GptModel,
         name: str = "RelationPrediction",
     ):
