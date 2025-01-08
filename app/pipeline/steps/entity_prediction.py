@@ -10,6 +10,7 @@ from app.pipeline.step import PipelineStep, PipelineStepType
 
 
 class EntityStep(PipelineStep, ABC):
+    model_types = ["llm"]
 
     def __init__(
         self,
