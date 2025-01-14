@@ -10,6 +10,7 @@ from app.pipeline.step import PipelineStep, PipelineStepType
 
 
 class RelationStep(PipelineStep, ABC):
+    model_types = ["llm"]
 
     def __init__(
         self,

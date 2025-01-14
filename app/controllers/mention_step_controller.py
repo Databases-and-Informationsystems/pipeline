@@ -25,7 +25,7 @@ class MentionStepController(Resource):
             "model_type": {
                 "description": "Recommendation System that should be used.",
                 "required": True,
-                "enum": ["llm"],
+                "enum": MentionStep.model_types,
             },
             "model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",

@@ -20,12 +20,12 @@ class MentionStepFactory:
     @staticmethod
     def create(settings: typing.Optional[dict]) -> MentionStep:
         if settings.get("model_type") == "llm":
-            temperature = (
+            temperature: Temperature = (
                 Temperature.from_string(settings.get("temperature"))
                 if settings and settings.get("temperature")
                 else Temperature.get_default()
             )
-            model = (
+            model: GptModel = (
                 GptModel.from_string(settings.get("model"))
                 if settings and settings.get("model")
                 else GptModel.get_default()
@@ -45,18 +45,18 @@ class EntityStepFactory:
     @staticmethod
     def create(settings: typing.Optional[dict]) -> EntityStep:
         if settings.get("model_type") == "llm":
-            temperature = (
+            temperature: Temperature = (
                 Temperature.from_string(settings.get("temperature"))
                 if settings and settings.get("temperature")
                 else Temperature.get_default()
             )
-            model = (
+            model: GptModel = (
                 GptModel.from_string(settings.get("model"))
                 if settings and settings.get("model")
                 else GptModel.get_default()
             )
             return EntityPrediction(
-                temperature=(Temperature.from_string(temperature)),
+                temperature=temperature,
                 model=model,
             )
         else:
@@ -70,18 +70,18 @@ class RelationStepFactory:
     @staticmethod
     def create(settings: typing.Optional[dict]) -> RelationStep:
         if settings.get("model_type") == "llm":
-            temperature = (
+            temperature: Temperature = (
                 Temperature.from_string(settings.get("temperature"))
                 if settings and settings.get("temperature")
                 else Temperature.get_default()
             )
-            model = (
+            model: GptModel = (
                 GptModel.from_string(settings.get("model"))
                 if settings and settings.get("model")
                 else GptModel.get_default()
             )
             return RelationPrediction(
-                temperature=(Temperature.from_string(temperature)),
+                temperature=temperature,
                 model=model,
             )
         else:
