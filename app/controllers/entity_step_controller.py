@@ -19,8 +19,7 @@ from ..util.file import read_json_from_file, create_file_from_data
 class EntityStepController(Resource):
 
     @ns.expect(entity_step_input, validate=True)
-    # TODO fix this
-    # @ns.marshal_with(entity_step_output, as_list=True, code=200)
+    @ns.marshal_with(entity_step_output, as_list=True, code=200)
     @ns.doc(
         params={
             "model_type": {
