@@ -45,8 +45,6 @@ class MentionStepController(Resource):
         """
         Detect mentions in a document based on the provided input.
         """
-        print("Detect mentions in a document based on the provided input.")
-
         data = request.get_json()
         tokens_data = data.get("tokens")
         content = data.get("content")
@@ -60,7 +58,6 @@ class MentionStepController(Resource):
             for token_data in tokens_data
         ]
         schema = TypeAdapter(Schema).validate_json(json.dumps(schema_data))
-        print(schema.id)
 
         mention_pipeline_step: MentionStep = MentionStepFactory.create(
             settings={
