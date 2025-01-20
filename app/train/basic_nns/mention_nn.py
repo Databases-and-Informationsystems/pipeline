@@ -1,11 +1,12 @@
 import os
 import typing
+import json
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from app.model.document import Document, Token, Mention
+from app.model.document import Document, Token, Mention, CMention
 from app.model.schema import Schema
 from app.model.settings import ModelSize
 from app.util.llm_util import get_prediction, extract_json
@@ -19,7 +20,10 @@ class MentionBasicNN(nn.Module):
     mention_tag_list: list[str]
 
     def __init__(
-        self, size: ModelSize = ModelSize.MEDIUM, documents: typing.List[Document] = []
+        self,
+        size: ModelSize = ModelSize.MEDIUM,
+        documents: typing.List[Document] = [],
+        schema_id: typing.Optional[str] = None,
     ):
         self.size = size
         self.token_postag_list = self.get_token_postag_list(documents=documents)
@@ -27,13 +31,16 @@ class MentionBasicNN(nn.Module):
         self.word2vec = Word2VecModel()
 
         super(MentionBasicNN, self).__init__()
-        self.fc1 = nn.Linear(
-            4 + 2 * len(self.token_postag_list) + 2 * self.word2vec.vector_size, 100
-        )
-        self.fc2 = nn.Linear(100, 50)
-        self.fc3 = nn.Linear(50, 30)
-        self.fc4 = nn.Linear(30, 10)
-        self.fc5 = nn.Linear(10, 3 + 2 * len(self.mention_tag_list))
+        if schema_id is not None:
+            self.load_from_file(schema_id)
+        else:
+            self.fc1 = nn.Linear(
+                4 + 2 * len(self.token_postag_list) + 2 * self.word2vec.vector_size, 100
+            )
+            self.fc2 = nn.Linear(100, 50)
+            self.fc3 = nn.Linear(50, 30)
+            self.fc4 = nn.Linear(30, 10)
+            self.fc5 = nn.Linear(10, 3 + 2 * len(self.mention_tag_list))
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -46,7 +53,7 @@ class MentionBasicNN(nn.Module):
     def start_training(self, schema: Schema, documents: typing.List[Document]) -> str:
         print("mention training started...")
 
-        X, y = self.prepare_data(schema=schema, documents=documents)
+        X, y = self.prepare_train_data(documents=documents)
 
         criterion = nn.BCELoss()
         optimizer = optim.Adam(self.parameters(), lr=0.005)
@@ -88,10 +95,6 @@ class MentionBasicNN(nn.Module):
         print("mention evaluated")
         return "evaluated"
 
-    def save(self) -> bool:
-        print("saved")
-        return True
-
     def get_mention_by_token(self, document: Document, token_index: int):
         for mention in document.mentions:
             for token in mention.tokens:
@@ -99,17 +102,118 @@ class MentionBasicNN(nn.Module):
                     return mention
         return
 
-    def save_as_file(self, file_name):
-        directory = "mention_NNs"
+    def save_as_file(self, schema_id):
+        directory = f"basic_nn/mentions/{schema_id}"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        file_path = os.path.join(directory, f"{file_name}.pth")
-        torch.save(self.state_dict(), file_path)
+        file_path_nn = f"{directory}/nn.pth"
+        file_path_metadata = f"{directory}/metadata.json"
 
-        print(f"Modell gespeichert unter: {file_path}")
+        metadata = {
+            "token_postag_list": self.token_postag_list,
+            "mention_tag_list": self.mention_tag_list,
+            "layer_sizes": [
+                self.fc1.in_features,
+                self.fc1.out_features,
+                self.fc2.out_features,
+                self.fc3.out_features,
+                self.fc4.out_features,
+                self.fc5.out_features,
+            ],
+        }
 
-    def prepare_data(self, schema: Schema, documents: typing.List[Document]):
+        torch.save(self.state_dict(), file_path_nn)
+        with open(file_path_metadata, "w") as metadata_file:
+            json.dump(metadata, metadata_file)
+
+        print(f"modell saved in: {file_path_nn}")
+        print(f"metadata saved in: {file_path_metadata}")
+
+    def load_from_file(self, schema_id: str):
+        directory = f"basic_nn/mentions/{schema_id}"
+        if not os.path.exists(directory):
+            raise FileNotFoundError(f"Pfad nicht gefunden: {directory}")
+
+        file_path_metadata = f"{directory}/metadata.json"
+        file_path_model = f"{directory}/nn.pth"
+
+        if not os.path.exists(file_path_model):
+            raise FileNotFoundError(f"Model file not found: {file_path_model}")
+
+        if not os.path.exists(file_path_metadata):
+            raise FileNotFoundError(f"Metadata file not found: {file_path_metadata}")
+
+        with open(file_path_metadata, "r") as metadata_file:
+            metadata = json.load(metadata_file)
+
+        self.token_postag_list = metadata["token_postag_list"]
+        self.mention_tag_list = metadata["mention_tag_list"]
+
+        layer_sizes = metadata["layer_sizes"]
+        self.fc1 = nn.Linear(layer_sizes[0], layer_sizes[1])
+        self.fc2 = nn.Linear(layer_sizes[1], layer_sizes[2])
+        self.fc3 = nn.Linear(layer_sizes[2], layer_sizes[3])
+        self.fc4 = nn.Linear(layer_sizes[3], layer_sizes[4])
+        self.fc5 = nn.Linear(layer_sizes[4], layer_sizes[5])
+
+        self.load_state_dict(torch.load(file_path_model))
+        print(f"Model successfully loaded from {file_path_model}")
+
+    def get_single_input(self, token0: Token, token1: Token):
+        single_X_input = []
+
+        single_X_input.append(token0.document_index)
+        single_X_input.append(token1.document_index)
+
+        single_X_input.append(token0.sentence_index)
+        single_X_input.append(token1.sentence_index)
+
+        single_X_input += self.get_token_postag_nn_input_list(token0)
+        single_X_input += self.get_token_postag_nn_input_list(token1)
+
+        wordvec0 = self.word2vec.get_vector(token0.text)
+        wordvec1 = self.word2vec.get_vector(token1.text)
+
+        if wordvec0 is None:
+            for i in range(self.word2vec.vector_size):
+                single_X_input.append(0)
+        else:
+            for i in range(self.word2vec.vector_size):
+                single_X_input.append(wordvec0[i])
+
+        if wordvec1 is None:
+            for i in range(self.word2vec.vector_size):
+                single_X_input.append(0)
+        else:
+            for i in range(self.word2vec.vector_size):
+                single_X_input.append(wordvec1[i])
+
+        return single_X_input
+
+    def get_single_output(self, mention0: Mention, mention1: Mention):
+        single_y_output = []
+
+        if mention0:
+            single_y_output.append(1)
+        else:
+            single_y_output.append(0)
+        if mention1:
+            single_y_output.append(1)
+        else:
+            single_y_output.append(0)
+
+        if mention0 and mention1 and mention0.id == mention1.id:
+            single_y_output.append(1)
+        else:
+            single_y_output.append(0)
+
+        single_y_output += self.get_mention_tag_nn_output_list(mention0)
+        single_y_output += self.get_mention_tag_nn_output_list(mention1)
+
+        return single_y_output
+
+    def prepare_train_data(self, documents: typing.List[Document]):
         X = []
         y = []
 
@@ -117,33 +221,7 @@ class MentionBasicNN(nn.Module):
             for i in range(len(document.tokens) - 1):
                 token0 = document.tokens[i]
                 token1 = document.tokens[i + 1]
-                single_X_input = []
-
-                single_X_input.append(token0.document_index)
-                single_X_input.append(token1.document_index)
-
-                single_X_input.append(token0.sentence_index)
-                single_X_input.append(token1.sentence_index)
-
-                single_X_input += self.get_token_postag_nn_input_list(token0)
-                single_X_input += self.get_token_postag_nn_input_list(token1)
-
-                wordvec0 = self.word2vec.get_vector(token0.text)
-                wordvec1 = self.word2vec.get_vector(token1.text)
-
-                if wordvec0 is None:
-                    for i in range(self.word2vec.vector_size):
-                        single_X_input.append(0)
-                else:
-                    for i in range(self.word2vec.vector_size):
-                        single_X_input.append(wordvec0[i])
-
-                if wordvec1 is None:
-                    for i in range(self.word2vec.vector_size):
-                        single_X_input.append(0)
-                else:
-                    for i in range(self.word2vec.vector_size):
-                        single_X_input.append(wordvec1[i])
+                single_X_input = self.get_single_input(token0, token1)
 
                 mention0 = self.get_mention_by_token(
                     document=document, token_index=token0.id
@@ -151,27 +229,10 @@ class MentionBasicNN(nn.Module):
                 mention1 = self.get_mention_by_token(
                     document=document, token_index=token1.id
                 )
-                single_y_input = []
-
-                if mention0:
-                    single_y_input.append(1)
-                else:
-                    single_y_input.append(0)
-                if mention1:
-                    single_y_input.append(1)
-                else:
-                    single_y_input.append(0)
-
-                if mention0 and mention1 and mention0.id == mention1.id:
-                    single_y_input.append(1)
-                else:
-                    single_y_input.append(0)
-
-                single_y_input += self.get_mention_tag_nn_output_list(mention0)
-                single_y_input += self.get_mention_tag_nn_output_list(mention1)
+                single_y_output = self.get_single_output(mention0, mention1)
 
                 X.append(single_X_input)
-                y.append(single_y_input)
+                y.append(single_y_output)
 
         return X, y
 
@@ -208,3 +269,40 @@ class MentionBasicNN(nn.Module):
             else:
                 nn_output_list.append(0)
         return nn_output_list
+
+    def predict(
+        self, content: str, schema: Schema, tokens: typing.List[Token]
+    ) -> typing.List[CMention]:
+        print("predict")
+        predictions = []
+
+        for i in range(len(tokens) - 1):
+            token0 = tokens[i]
+            token1 = tokens[i + 1]
+
+            input = self.get_single_input(token0, token1)
+            input = torch.tensor([input], dtype=torch.float32)
+
+            self.eval()
+            output = self(input)
+            predictions.append(output)
+
+        threshold = 0.5
+
+        ret = []
+        mention = None
+        for i, prediction in enumerate(predictions):
+            if mention is None:
+                if prediction[0, 0] > threshold:
+                    mention = CMention(
+                        endTokenDocumentIndex=i, startTokenDocumentIndex=i, type="TBC"
+                    )
+                    mention.startTokenDocumentIndex = i
+
+            if mention is not None and prediction[0, 2] < threshold:
+                mention.endTokenDocumentIndex = i
+                ret.append(mention)
+                mention = None
+
+        print("nn prediction fertig")
+        return ret
