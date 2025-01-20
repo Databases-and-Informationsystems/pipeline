@@ -15,12 +15,15 @@ class EntityBasicNN:
 
     def train(self, schema: Schema, documents: typing.List[Document]) -> str:
         print("entity trained")
+        # TODO
         return "trained"
 
     def evaluate(self, schema: Schema, documents: typing.List[Document]) -> str:
         print("entity evaluated")
+        # TODO
         return "evaluated"
 
     def save(self) -> bool:
         print("saved")
+        # TODO
         return True

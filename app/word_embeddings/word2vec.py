@@ -33,5 +33,4 @@ class Word2VecModel:
         try:
             return Word2VecModel._model[word]
         except KeyError:
-            print(f"'{word}' not found")
             return None

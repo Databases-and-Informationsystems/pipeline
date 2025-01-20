@@ -15,12 +15,15 @@ class RelationBasicNN:
 
     def train(self, schema: Schema, documents: typing.List[Document]) -> str:
         print("relation trained")
+        # TODO
         return "trained"
 
     def evaluate(self, schema: Schema, documents: typing.List[Document]) -> str:
         print("relation evaluated")
+        # TODO
         return "evaluated"
 
     def save(self) -> bool:
         print("saved")
+        # TODO
         return True

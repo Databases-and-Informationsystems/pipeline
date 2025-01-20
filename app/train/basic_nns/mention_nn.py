@@ -51,8 +51,6 @@ class MentionBasicNN(nn.Module):
         return x
 
     def start_training(self, schema: Schema, documents: typing.List[Document]) -> str:
-        print("mention training started...")
-
         X, y = self.prepare_train_data(documents=documents)
 
         criterion = nn.BCELoss()
@@ -88,12 +86,12 @@ class MentionBasicNN(nn.Module):
             epoch_loss /= num_batches
             print(f"Epoche [{epoch+1}/{num_epochs}] abgeschlossen. Loss: {epoch_loss}")
 
-        print("training finished")
-        return "trained"
+        return
 
     def evaluate(self, schema: Schema, documents: typing.List[Document]) -> str:
         print("mention evaluated")
-        return "evaluated"
+        # TODO
+        return
 
     def get_mention_by_token(self, document: Document, token_index: int):
         for mention in document.mentions:
@@ -273,7 +271,6 @@ class MentionBasicNN(nn.Module):
     def predict(
         self, content: str, schema: Schema, tokens: typing.List[Token]
     ) -> typing.List[CMention]:
-        print("predict")
         predictions = []
 
         for i in range(len(tokens) - 1):
@@ -304,5 +301,4 @@ class MentionBasicNN(nn.Module):
                 ret.append(mention)
                 mention = None
 
-        print("nn prediction fertig")
         return ret
