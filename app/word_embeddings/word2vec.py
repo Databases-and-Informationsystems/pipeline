@@ -6,7 +6,8 @@ import logging
 
 class Word2VecModel:
     _model = None
-    _model_path = "local_word2vec"
+    _model_directory = "word_embedding_models"
+    _model_name = "word2vec"
     vector_size = 300
 
     def __init__(self):
@@ -14,11 +15,15 @@ class Word2VecModel:
             self._load_model()
 
     def _load_model(self):
-        if os.path.exists(Word2VecModel._model_path):
-            Word2VecModel._model = KeyedVectors.load(Word2VecModel._model_path)
+        if os.path.exists(f"{self._model_directory}/{self._model_name}"):
+            Word2VecModel._model = KeyedVectors.load(
+                f"{self._model_directory}/{self._model_name}"
+            )
         else:
             model = api.load("word2vec-google-news-300")
-            model.save(Word2VecModel._model_path)
+            if os.path.exists(self._model_directory) == False:
+                os.mkdir(self._model_directory)
+            model.save(f"{self._model_directory}/{self._model_name}")
             Word2VecModel._model = model
 
     def get_vector(self, word: str):
