@@ -8,7 +8,7 @@ from pydantic import TypeAdapter
 from . import steps_ns as ns, caching_enabled, get_document_id
 from ..model.document import Token, CMention
 from ..model.schema import Schema
-from ..model.settings import GptModel, Temperature
+from ..model.settings import GptModel, Temperature, PredictModelType
 from ..pipeline.factory import MentionStepFactory
 from ..pipeline.steps.mention_prediction import MentionStep
 from ..restx_dtos import mention_step_input, new_mention
@@ -25,7 +25,7 @@ class MentionStepController(Resource):
             "model_type": {
                 "description": "Recommendation System that should be used.",
                 "required": True,
-                "enum": ["llm"],
+                "enum": [model_type.value for model_type in PredictModelType],
             },
             "model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",
@@ -45,6 +45,8 @@ class MentionStepController(Resource):
         """
         Detect mentions in a document based on the provided input.
         """
+        print("Detect mentions in a document based on the provided input.")
+
         data = request.get_json()
         tokens_data = data.get("tokens")
         content = data.get("content")
@@ -58,12 +60,14 @@ class MentionStepController(Resource):
             for token_data in tokens_data
         ]
         schema = TypeAdapter(Schema).validate_json(json.dumps(schema_data))
+        print(schema.id)
 
         mention_pipeline_step: MentionStep = MentionStepFactory.create(
             settings={
                 "model_type": request.args.get("model_type"),
                 "model": request.args.get("model"),
                 "temperature": request.args.get("temperature"),
+                "schema_id": schema.id,
             },
         )
 

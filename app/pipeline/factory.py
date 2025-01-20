@@ -5,7 +5,12 @@ from app.pipeline.models.llm import GptModel
 from app.pipeline.steps.entity_prediction import EntityPrediction, EntityStep
 from app.pipeline.steps.relation_prediction import RelationStep, RelationPrediction
 from app.pipeline.steps.tokenizer import Tokenizer, TokenizeStep
-from app.pipeline.steps.mention_prediction import LLMMentionStep, MentionStep
+from app.pipeline.steps.mention_prediction import (
+    LLMMentionStep,
+    MentionStep,
+    NNMentionStep,
+)
+from app.train.basic_nns.mention_nn import MentionBasicNN
 
 
 class TokenizeStepFactory:
@@ -34,6 +39,9 @@ class MentionStepFactory:
                 temperature=temperature,
                 model=model,
             )
+        elif settings.get("model_type") == "basic_nn":
+            model = MentionBasicNN(schema_id=settings.get("schema_id"))
+            return NNMentionStep(model=model)
         else:
             raise ValueError(
                 f"model_type '{settings.get('model_type')}' is not supported."

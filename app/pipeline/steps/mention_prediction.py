@@ -7,6 +7,7 @@ from app.pipeline.models.llm import GptModel, LLMMentionPrediction
 from app.model.document import CMention, Token
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
+from app.train.basic_nns.mention_nn import MentionBasicNN
 
 
 class MentionStep(PipelineStep, ABC):
@@ -71,5 +72,28 @@ class LLMMentionStep(MentionStep):
             ]
         except TypeError as e:
             raise ValueError(f"Error creating CMention objects: {e}") from e
+
+        return c_mentions
+
+
+class NNMentionStep(MentionStep):
+    model: MentionBasicNN
+
+    def __init__(
+        self,
+        model: MentionBasicNN,
+        name: str = "MentionPrediction",
+    ):
+        super().__init__(name)
+        self.model = model
+
+    def _train(self):
+        pass
+
+    def _run(
+        self, content: str, schema: Schema, tokens: typing.List[Token]
+    ) -> typing.List[CMention]:
+
+        c_mentions = self.model.predict(content=content, schema=schema, tokens=tokens)
 
         return c_mentions

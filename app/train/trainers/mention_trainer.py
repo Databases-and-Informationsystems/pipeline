@@ -39,7 +39,7 @@ class NNMentionTrainer(MentionTrainer):
         mention_nn = MentionBasicNN(size=self.size, documents=documents)
 
         mention_nn.start_training(schema=schema, documents=documents)
-        mention_nn.save_as_file("test")
+        mention_nn.save_as_file(schema_id=schema.id)
 
         if self._evaluate:
             mention_nn.evaluate(schema=schema, documents=documents)
