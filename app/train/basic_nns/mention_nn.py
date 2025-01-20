@@ -28,12 +28,12 @@ class MentionBasicNN(nn.Module):
 
         super(MentionBasicNN, self).__init__()
         self.fc1 = nn.Linear(
-            4 + 2 * len(self.postag_list) + 2 * self.word2vec.vector_size, 100
+            4 + 2 * len(self.token_postag_list) + 2 * self.word2vec.vector_size, 100
         )
         self.fc2 = nn.Linear(100, 50)
         self.fc3 = nn.Linear(50, 30)
         self.fc4 = nn.Linear(30, 10)
-        self.fc5 = nn.Linear(10, 3)
+        self.fc5 = nn.Linear(10, 3 + 2 * len(self.mention_tag_list))
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -167,8 +167,8 @@ class MentionBasicNN(nn.Module):
                 else:
                     single_y_input.append(0)
 
-                single_X_input += self.get_mention_tag_nn_output_list(mention0)
-                single_X_input += self.get_mention_tag_nn_output_list(mention1)
+                single_y_input += self.get_mention_tag_nn_output_list(mention0)
+                single_y_input += self.get_mention_tag_nn_output_list(mention1)
 
                 X.append(single_X_input)
                 y.append(single_y_input)
@@ -200,6 +200,8 @@ class MentionBasicNN(nn.Module):
 
     def get_mention_tag_nn_output_list(self, mention: Mention):
         nn_output_list = []
+        if mention is None:
+            return [0] * len(self.mention_tag_list)
         for tag in self.mention_tag_list:
             if mention.tag == tag:
                 nn_output_list.append(1)
