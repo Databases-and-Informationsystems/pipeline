@@ -52,6 +52,15 @@ class Temperature(Enum):
             raise ValueError(f"Unknown temperature: {value}")
 
 
+class PredictModelType(Enum):
+    BASIC_NEURAL_NETWORK = "basic_nn"
+    LARGE_LANGUAGE_MODEL = "llm"
+
+    @staticmethod
+    def get_default():
+        return PredictModelType.LARGE_LANGUAGE_MODEL
+
+
 class TrainModelType(Enum):
     BASIC_NEURAL_NETWORK = "basic_nn"
 
