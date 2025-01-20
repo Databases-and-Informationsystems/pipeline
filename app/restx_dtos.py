@@ -48,6 +48,16 @@ relation_input = api.model(
 # train neural network sub -inputs
 ### --------------------------------------------------------------------------------------------------------------------
 
+mention_document = api.model(
+    "MentionDocument",
+    {
+        "id": fields.Integer(required=False),
+        "content": fields.String(required=True),
+        "tokens": fields.List(fields.Nested(token_input)),
+        "mentions": fields.List(fields.Nested(mention_input)),
+    },
+)
+
 document = api.model(
     "MentionDocument",
     {

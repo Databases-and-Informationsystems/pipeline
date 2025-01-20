@@ -36,9 +36,10 @@ class NNMentionTrainer(MentionTrainer):
         self.size = size
 
     def _train(self, schema: Schema, documents: typing.List[Document]) -> str:
-        mention_nn = MentionBasicNN(size=self.size)
+        mention_nn = MentionBasicNN(size=self.size, documents=documents)
 
-        mention_nn.train(schema=schema, documents=documents)
+        mention_nn.start_training(schema=schema, documents=documents)
+        mention_nn.save_as_file("test")
 
         if self._evaluate:
             mention_nn.evaluate(schema=schema, documents=documents)

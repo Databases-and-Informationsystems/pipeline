@@ -44,6 +44,7 @@ class MentionTrainController(Resource):
         Train neural network for mention detection.
         """
 
+        print("Train neural network for mention detection.")
         data = request.get_json()
         documents_data = data.get("documents")
         schema_data = data.get("schema")
