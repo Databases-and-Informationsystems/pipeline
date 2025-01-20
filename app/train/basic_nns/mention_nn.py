@@ -286,7 +286,7 @@ class MentionBasicNN(nn.Module):
 
         threshold = 0.5
 
-        ret = []
+        mentions: typing.List[CMention] = []
         mention = None
         for i, prediction in enumerate(predictions):
             if mention is None:
@@ -298,7 +298,36 @@ class MentionBasicNN(nn.Module):
 
             if mention is not None and prediction[0, 2] < threshold:
                 mention.endTokenDocumentIndex = i
-                ret.append(mention)
+                mentions.append(mention)
                 mention = None
 
-        return ret
+        # wird mit dynamischer Modellgröße schöner gemacht
+        output_neuron_const = 3
+
+        for mention in mentions:
+            type_prediction = torch.zeros(
+                int((predictions[0].shape[1] - output_neuron_const) / 2)
+            )
+
+            for i in range(
+                mention.startTokenDocumentIndex - 1, mention.endTokenDocumentIndex + 1
+            ):
+                if i < 0 or i > len(prediction):
+                    continue
+
+                if i <= mention.endTokenDocumentIndex:
+                    type_prediction += predictions[i][0][
+                        output_neuron_const : output_neuron_const + len(type_prediction)
+                    ]
+
+                if i >= mention.startTokenDocumentIndex:
+                    type_prediction += predictions[i][0][
+                        output_neuron_const
+                        + len(type_prediction) : output_neuron_const
+                        + 2 * len(type_prediction)
+                    ]
+
+            max_index = torch.argmax(type_prediction)
+            mention.type = self.mention_tag_list[max_index]
+
+        return mentions
