@@ -24,7 +24,12 @@ class MentionBasicNN(BasicNN):
     ):
         self.token_postag_list = self._get_token_postag_list(documents=documents)
         self.mention_tag_list = self._get_mention_tag_list(documents=documents)
-        super().__init__(nn_type=BasicNNType.MENTION_NN, size=size, schema_id=schema_id)
+        super().__init__(
+            nn_type=BasicNNType.MENTION_NN,
+            size=size,
+            documents=documents,
+            schema_id=schema_id,
+        )
 
     def _init_layer(self):
         self.fc1 = nn.Linear(
@@ -90,8 +95,8 @@ class MentionBasicNN(BasicNN):
         else:
             single_y_output.append(0)
 
-        single_y_output += self._get_mention_tag_nn_output_list(mention0)
-        single_y_output += self._get_mention_tag_nn_output_list(mention1)
+        single_y_output += self._get_mention_tag_nn_input_list(mention0)
+        single_y_output += self._get_mention_tag_nn_input_list(mention1)
 
         return single_y_output
 
@@ -118,43 +123,8 @@ class MentionBasicNN(BasicNN):
 
         return X, y
 
-    def _get_token_postag_list(self, documents: typing.List[Document]):
-        postag_list = []
-        for document in documents:
-            for token in document.tokens:
-                postag_list.append(token.pos_tag)
-        return list(set(postag_list))
-
-    def _get_mention_tag_list(self, documents: typing.List[Document]):
-        tag_list = []
-        for document in documents:
-            for mention in document.mentions:
-                tag_list.append(mention.tag)
-        return list(set(tag_list))
-
-    def _get_token_postag_nn_input_list(self, token: Token):
-        nn_input_list = []
-        for postag in self.token_postag_list:
-            if token.pos_tag == postag:
-                nn_input_list.append(1)
-            else:
-                nn_input_list.append(0)
-        return nn_input_list
-
-    def _get_mention_tag_nn_output_list(self, mention: Mention):
-        nn_output_list = []
-        if mention is None:
-            return [0] * len(self.mention_tag_list)
-        for tag in self.mention_tag_list:
-            if mention.tag == tag:
-                nn_output_list.append(1)
-            else:
-                nn_output_list.append(0)
-        return nn_output_list
-
-    def _predict(self, document: Document) -> typing.List[CMention]:
+    def predict(self, tokens: typing.List[Token]) -> typing.List[CMention]:
         predictions = []
-        tokens = document.tokens
 
         for i in range(len(tokens) - 1):
             token0 = tokens[i]
@@ -216,10 +186,10 @@ class MentionBasicNN(BasicNN):
         return mentions
 
     def _evaluate_prediction_against_truth(
-        self, prediction: typing.List[CMention], truth: typing.List[Mention]
+        self, prediction: typing.List[CMention], truth: Document
     ):
         truth_cmentions: typing.List[CMention] = []
-        for truth_entry in truth:
+        for truth_entry in truth.mentions:
             start, end = self._get_min_max_token_indices_by_mention(truth_entry)
 
             cmention = CMention(

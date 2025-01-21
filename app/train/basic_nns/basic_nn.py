@@ -2,6 +2,7 @@ import os
 import typing
 import json
 import random
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -27,20 +28,25 @@ class BasicNN(nn.Module, ABC):
     size: ModelSize
     word2vec: Word2VecModel
     _nn_type: BasicNNType
+    token_postag_list: list[str]
+    mention_tag_list: list[str]
 
     def __init__(
         self,
         nn_type: BasicNNType,
         size: ModelSize = ModelSize.MEDIUM,
+        documents: typing.List[Document] = [],
         schema_id: typing.Optional[str] = None,
     ):
         super(BasicNN, self).__init__()
         self._nn_type = nn_type
         self.size = size
         self.word2vec = Word2VecModel()
+        self.token_postag_list = self._get_token_postag_list(documents=documents)
+        self.mention_tag_list = self._get_mention_tag_list(documents=documents)
 
         if schema_id is not None:
-            self.load_from_file(schema_id)
+            self._load_from_file(schema_id)
         else:
             self._init_layer()
 
@@ -102,15 +108,15 @@ class BasicNN(nn.Module, ABC):
 
         score = 0
         for test_document in test_documents:
-            prediction = self._predict(test_document)
+            prediction = self.predict(test_document)
             score += self._evaluate_prediction_against_truth(
-                prediction=prediction, truth=test_document.mentions
+                prediction=prediction, truth=test_document
             )
         print(score / len(test_documents))
         return score / len(test_documents)
 
     def save_as_file(self, schema_id):
-        directory = f"basic_nn/{self._nn_type}/{schema_id}"
+        directory = f"basic_nn/{self._nn_type.value}/{schema_id}"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -138,7 +144,7 @@ class BasicNN(nn.Module, ABC):
         print(f"metadata saved in: {file_path_metadata}")
 
     def _load_from_file(self, schema_id: str):
-        directory = f"basic_nn/{self._nn_type}/{schema_id}"
+        directory = f"basic_nn/{self._nn_type.value}/{schema_id}"
         if not os.path.exists(directory):
             raise FileNotFoundError(f"Pfad nicht gefunden: {directory}")
 
@@ -167,6 +173,56 @@ class BasicNN(nn.Module, ABC):
         self.load_state_dict(torch.load(file_path_model))
         print(f"Model successfully loaded from {file_path_model}")
 
+    def _get_token_postag_list(self, documents: typing.List[Document]):
+        postag_list = []
+        for document in documents:
+            for token in document.tokens:
+                postag_list.append(token.pos_tag)
+        return list(set(postag_list))
+
+    def _get_mention_tag_list(self, documents: typing.List[Document]):
+        tag_list = []
+        for document in documents:
+            for mention in document.mentions:
+                tag_list.append(mention.tag)
+        return list(set(tag_list))
+
+    def _get_mention_tag_nn_input_list(self, mention: Mention):
+        nn_output_list = []
+        if mention is None:
+            return [0] * len(self.mention_tag_list)
+        for tag in self.mention_tag_list:
+            if mention.tag == tag:
+                nn_output_list.append(1)
+            else:
+                nn_output_list.append(0)
+        return nn_output_list
+
+    def _get_token_postag_nn_input_list(self, token: Token):
+        nn_input_list = []
+        for postag in self.token_postag_list:
+            if token.pos_tag == postag:
+                nn_input_list.append(1)
+            else:
+                nn_input_list.append(0)
+        return nn_input_list
+
+    def _get_mention_postag_nn_input_list(self, mention: Mention):
+        nn_input_list = None
+        for token in mention.tokens:
+            postag_list = self._get_token_postag_nn_input_list(token)
+            if nn_input_list is None:
+                nn_input_list = postag_list
+            else:
+                nn_input_list = list(np.array(nn_input_list) + np.array(postag_list))
+        return nn_input_list
+
+    def _get_mention_text(self, mention: Mention):
+        text = ""
+        for token in mention.tokens:
+            text += f"{token.text} "
+        return text
+
     @abstractmethod
     def _init_layer(self):
         pass
@@ -176,7 +232,7 @@ class BasicNN(nn.Module, ABC):
         pass
 
     @abstractmethod
-    def _predict(self, document: Document):
+    def predict(self, content):
         pass
 
     @abstractmethod

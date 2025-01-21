@@ -1,5 +1,6 @@
 import gensim.downloader as api
 from gensim.models import KeyedVectors
+import numpy as np
 import os
 import logging
 
@@ -16,9 +17,11 @@ class Word2VecModel:
 
     def _load_model(self):
         if os.path.exists(f"{self._model_directory}/{self._model_name}"):
+            print("load word2vec model...")
             Word2VecModel._model = KeyedVectors.load(
                 f"{self._model_directory}/{self._model_name}"
             )
+            print("succesfully loaded word2vec model")
         else:
             model = api.load("word2vec-google-news-300")
             if os.path.exists(self._model_directory) == False:
@@ -34,3 +37,15 @@ class Word2VecModel:
             return Word2VecModel._model[word]
         except KeyError:
             return None
+
+    def get_vector_for_multiple_words(self, string: str):
+        words = string.split(" ")
+        word_vectors = []
+
+        for word in words:
+            vector = self.get_vector(word)
+            if vector is None:
+                continue
+            word_vectors.append(vector)
+
+        return np.mean(word_vectors, axis=0)

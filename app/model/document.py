@@ -27,10 +27,6 @@ class Token(CToken):
         )
 
 
-class Entity(BaseModel):
-    id: int
-
-
 class CMention(BaseModel):
     type: str
     startTokenDocumentIndex: int
@@ -41,7 +37,6 @@ class Mention(BaseModel):
     id: typing.Optional[int]
     tag: str
     tokens: typing.List[Token]
-    entity: typing.Optional[Entity] = None
 
     def to_dict(self) -> typing.Dict[str, typing.Any]:
         sorted_tokens_with_content = sorted(
@@ -61,6 +56,12 @@ class Mention(BaseModel):
         return json.dumps(
             self.to_dict(),
         )
+
+
+class Entity(BaseModel):
+    id: int
+    tag: str
+    mentions: typing.List[Mention]
 
 
 class CEntity(BaseModel):
