@@ -94,6 +94,6 @@ class NNMentionStep(MentionStep):
         self, content: str, schema: Schema, tokens: typing.List[Token]
     ) -> typing.List[CMention]:
 
-        c_mentions = self.model.predict(content=content, schema=schema, tokens=tokens)
+        c_mentions = self.model.predict(tokens=tokens)
 
         return c_mentions

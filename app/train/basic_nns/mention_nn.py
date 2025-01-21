@@ -1,6 +1,7 @@
 import os
 import typing
 import json
+import random
 
 import torch
 import torch.nn as nn
@@ -34,13 +35,16 @@ class MentionBasicNN(nn.Module):
         if schema_id is not None:
             self.load_from_file(schema_id)
         else:
-            self.fc1 = nn.Linear(
-                4 + 2 * len(self.token_postag_list) + 2 * self.word2vec.vector_size, 100
-            )
-            self.fc2 = nn.Linear(100, 50)
-            self.fc3 = nn.Linear(50, 30)
-            self.fc4 = nn.Linear(30, 10)
-            self.fc5 = nn.Linear(10, 3 + 2 * len(self.mention_tag_list))
+            self.init_layer()
+
+    def init_layer(self):
+        self.fc1 = nn.Linear(
+            4 + 2 * len(self.token_postag_list) + 2 * self.word2vec.vector_size, 100
+        )
+        self.fc2 = nn.Linear(100, 50)
+        self.fc3 = nn.Linear(50, 30)
+        self.fc4 = nn.Linear(30, 10)
+        self.fc5 = nn.Linear(10, 3 + 2 * len(self.mention_tag_list))
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -50,7 +54,7 @@ class MentionBasicNN(nn.Module):
         x = torch.sigmoid(self.fc5(x))
         return x
 
-    def start_training(self, schema: Schema, documents: typing.List[Document]) -> str:
+    def start_training(self, documents: typing.List[Document]) -> str:
         X, y = self.prepare_train_data(documents=documents)
 
         criterion = nn.BCELoss()
@@ -64,6 +68,7 @@ class MentionBasicNN(nn.Module):
         num_batches = (num_samples + batch_size - 1) // batch_size
 
         num_epochs = 50
+        epoch_loss_list = []
         for epoch in range(num_epochs):
             self.train()
 
@@ -85,13 +90,28 @@ class MentionBasicNN(nn.Module):
 
             epoch_loss /= num_batches
             print(f"Epoche [{epoch+1}/{num_epochs}] abgeschlossen. Loss: {epoch_loss}")
+            epoch_loss_list.append(epoch_loss)
 
-        return
+        return epoch_loss_list
 
     def evaluate(self, schema: Schema, documents: typing.List[Document]) -> str:
         print("mention evaluated")
-        # TODO
-        return
+
+        random.shuffle(documents)
+        split_index = int(len(documents) * 0.8)
+        train_documents = documents[:split_index]
+        test_documents = documents[split_index:]
+
+        self.start_training(documents=train_documents)
+
+        score = 0
+        for test_document in test_documents:
+            prediction = self.predict(test_document.tokens)
+            score += self.evaluate_prediction_against_truth(
+                prediction=prediction, truth=test_document.mentions
+            )
+        print(score / len(test_documents))
+        return score / len(test_documents)
 
     def get_mention_by_token(self, document: Document, token_index: int):
         for mention in document.mentions:
@@ -268,9 +288,7 @@ class MentionBasicNN(nn.Module):
                 nn_output_list.append(0)
         return nn_output_list
 
-    def predict(
-        self, content: str, schema: Schema, tokens: typing.List[Token]
-    ) -> typing.List[CMention]:
+    def predict(self, tokens: typing.List[Token]) -> typing.List[CMention]:
         predictions = []
 
         for i in range(len(tokens) - 1):
@@ -331,3 +349,40 @@ class MentionBasicNN(nn.Module):
             mention.type = self.mention_tag_list[max_index]
 
         return mentions
+
+    def evaluate_prediction_against_truth(
+        self, prediction: typing.List[CMention], truth: typing.List[Mention]
+    ):
+        truth_cmentions: typing.List[CMention] = []
+        for truth_entry in truth:
+            start, end = self.get_min_max_token_indices_by_mention(truth_entry)
+
+            cmention = CMention(
+                endTokenDocumentIndex=start,
+                startTokenDocumentIndex=end,
+                type=truth_entry.tag,
+            )
+            truth_cmentions.append(cmention)
+
+        equal_counter = 0
+        for prediciton_mention in prediction:
+            for true_mention in truth_cmentions:
+                if (
+                    prediciton_mention.startTokenDocumentIndex
+                    == true_mention.startTokenDocumentIndex
+                    and prediciton_mention.endTokenDocumentIndex
+                    == true_mention.endTokenDocumentIndex
+                    and prediciton_mention.type == true_mention.type
+                ):
+                    equal_counter += 1
+        return equal_counter * 2 / (len(truth_cmentions) + len(prediction))
+
+    def get_min_max_token_indices_by_mention(
+        self,
+        mention: Mention,
+    ) -> typing.Tuple[int, int]:
+        token_indices = []
+        for token in mention.tokens:
+            token_indices.append(token.id)
+
+        return min(token_indices), max(token_indices)
