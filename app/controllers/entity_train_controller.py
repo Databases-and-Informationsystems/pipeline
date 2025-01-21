@@ -11,13 +11,14 @@ from ..model.schema import Schema
 from ..model.settings import ModelSize, TrainModelType
 from ..train.factory import EntityTrainerFactory
 from ..train.trainers.entity_trainer import EntityTrainer
-from ..restx_dtos import train_entity_input
+from ..restx_dtos import train_entity_input, training_results
 
 
 @ns.route("/entity")
 class EntityTrainController(Resource):
 
     @ns.expect(train_entity_input, validate=True)
+    @ns.marshal_with(training_results, code=200)
     @ns.doc(
         params={
             "model_type": {
@@ -64,6 +65,6 @@ class EntityTrainController(Resource):
             }
         )
 
-        entity_trainer.train(documents=documents, schema=schema)
+        training_results = entity_trainer.train(documents=documents, schema=schema)
 
-        return "hallo"
+        return training_results
