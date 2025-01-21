@@ -231,3 +231,17 @@ train_entity_input = api.model(
         "documents": fields.List(fields.Nested(document)),
     },
 )
+
+### --------------------------------------------------------------------------------------------------------------------
+# Training Results
+
+training_results = api.model(
+    "TrainingResults",
+    {
+        "epoch_train_loss": fields.List(fields.Float(required=True)),
+        "number_of_epochs": fields.Integer(required=True),
+        "cross_validation_score": fields.Float,
+    },
+)
+
+### --------------------------------------------------------------------------------------------------------------------
