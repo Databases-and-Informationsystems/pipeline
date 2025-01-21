@@ -8,7 +8,7 @@ from pydantic import TypeAdapter
 from . import steps_ns as ns, caching_enabled, get_document_id
 from ..model.document import Mention, CEntity
 from ..model.schema import Schema
-from ..model.settings import GptModel, Temperature
+from ..model.settings import GptModel, Temperature, PredictModelType
 from ..pipeline.factory import EntityStepFactory
 from ..pipeline.steps.entity_prediction import EntityStep
 from ..restx_dtos import entity_step_output, entity_step_input
@@ -26,7 +26,7 @@ class EntityStepController(Resource):
             "model_type": {
                 "description": "Recommendation System that should be used.",
                 "required": True,
-                "enum": ["llm"],
+                "enum": [model_type.value for model_type in PredictModelType],
             },
             "model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",
