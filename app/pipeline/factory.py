@@ -2,10 +2,22 @@ import typing
 
 from app.model.settings import Temperature
 from app.pipeline.models.llm import GptModel
-from app.pipeline.steps.entity_prediction import EntityPrediction, EntityStep
-from app.pipeline.steps.relation_prediction import RelationStep, RelationPrediction
+from app.pipeline.steps.entity_prediction import (
+    EntityPrediction,
+    EntityStep,
+    EntityModelType,
+)
+from app.pipeline.steps.relation_prediction import (
+    RelationStep,
+    RelationPrediction,
+    RelationModelType,
+)
 from app.pipeline.steps.tokenizer import Tokenizer, TokenizeStep
-from app.pipeline.steps.mention_prediction import LLMMentionStep, MentionStep
+from app.pipeline.steps.mention_prediction import (
+    LLMMentionStep,
+    MentionStep,
+    MentionModelType,
+)
 
 
 class TokenizeStepFactory:
@@ -40,6 +52,14 @@ class MentionStepFactory:
             )
 
 
+def get_mention_settings(model_type: MentionModelType) -> dict:
+    if model_type == MentionModelType.LLM:
+        return {
+            "temperature": [t.value for t in Temperature],
+            "model": [m.value for m in GptModel],
+        }
+
+
 class EntityStepFactory:
 
     @staticmethod
@@ -65,6 +85,14 @@ class EntityStepFactory:
             )
 
 
+def get_entity_settings(model_type: EntityModelType) -> dict:
+    if model_type == EntityModelType.LLM:
+        return {
+            "temperature": [t.value for t in Temperature],
+            "model": [m.value for m in GptModel],
+        }
+
+
 class RelationStepFactory:
 
     @staticmethod
@@ -88,3 +116,11 @@ class RelationStepFactory:
             raise ValueError(
                 f"model_type '{settings.get('model_type')}' is not supported."
             )
+
+
+def get_relation_settings(model_type: RelationModelType) -> dict:
+    if model_type == RelationModelType.LLM:
+        return {
+            "temperature": [t.value for t in Temperature],
+            "model": [m.value for m in GptModel],
+        }

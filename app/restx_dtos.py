@@ -175,3 +175,26 @@ relation_step_input = api.model(
         "mentions": fields.List(fields.Nested(mention_input), required=True),
     },
 )
+
+
+### --------------------------------------------------------------------------------------------------------------------
+# Pipeline Documentation
+### --------------------------------------------------------------------------------------------------------------------
+
+model_type_with_settings = api.model(
+    "ModelTypeWithSettings",
+    {
+        "model_type": fields.String(required=True),
+        "settings": fields.Raw(
+            required=False,
+            description="""
+Dictionary of key value pairs, that can be added as query param to the model_type.
+Keys are always of type string.
+Values can be of type:
+- **integer** => any integer can be used as value
+- **string** => any string can be used as value  
+- **list** *(of strings)* => any value in the list of strings can be used (enum like behavior)           
+                        """,
+        ),
+    },
+)
