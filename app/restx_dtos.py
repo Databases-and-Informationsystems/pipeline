@@ -188,12 +188,15 @@ model_type_with_settings = api.model(
         "settings": fields.Raw(
             required=False,
             description="""
-Dictionary of key value pairs, that can be added as query param to the model_type.
-Keys are always of type string.
-Values can be of type:
-- **integer** => any integer can be used as value
-- **string** => any string can be used as value  
-- **list** *(of strings)* => any value in the list of strings can be used (enum like behavior)           
+Dictionary of key value pairs, that can be added as query param to the _model_type_.
+_Keys_ are always of type string.
+_Values_ are of type object containing the following keys:
+- **values** => possible values for the key
+    - if the value is an array, all values of the array are valid (enum like behavior)
+    - if the value is an string, the possible type is the value of the string
+        - _"string"_ => any string can be an input
+        - _"integer"_ => any integer can be an input
+- **default** => the default value for the key. _Null_ if there is no default value      
                         """,
         ),
     },

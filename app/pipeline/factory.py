@@ -55,8 +55,14 @@ class MentionStepFactory:
 def get_mention_settings(model_type: MentionModelType) -> dict:
     if model_type == MentionModelType.LLM:
         return {
-            "temperature": [t.value for t in Temperature],
-            "model": [m.value for m in GptModel],
+            "temperature": {
+                "values": [t.value for t in Temperature],
+                "default": Temperature.get_default().value,
+            },
+            "model": {
+                "values": [m.value for m in GptModel],
+                "default": GptModel.get_default().value,
+            },
         }
 
 
@@ -88,8 +94,14 @@ class EntityStepFactory:
 def get_entity_settings(model_type: EntityModelType) -> dict:
     if model_type == EntityModelType.LLM:
         return {
-            "temperature": [t.value for t in Temperature],
-            "model": [m.value for m in GptModel],
+            "temperature": {
+                "values": [t.value for t in Temperature],
+                "default": Temperature.get_default().value,
+            },
+            "model": {
+                "values": [m.value for m in GptModel],
+                "default": GptModel.get_default().value,
+            },
         }
 
 
@@ -121,6 +133,12 @@ class RelationStepFactory:
 def get_relation_settings(model_type: RelationModelType) -> dict:
     if model_type == RelationModelType.LLM:
         return {
-            "temperature": [t.value for t in Temperature],
-            "model": [m.value for m in GptModel],
+            "temperature": {
+                "values": [t.value for t in Temperature],
+                "default": Temperature.get_default().value,
+            },
+            "model": {
+                "values": [m.value for m in GptModel],
+                "default": GptModel.get_default().value,
+            },
         }
