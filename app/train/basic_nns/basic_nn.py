@@ -11,7 +11,7 @@ import torch.optim as optim
 from abc import ABC, abstractmethod
 from enum import Enum
 
-from app.model.document import Document, Token, Mention, CMention
+from app.model.document import Document, Token, Mention, Relation
 from app.model.schema import Schema
 from app.model.settings import ModelSize
 from app.util.llm_util import get_prediction, extract_json
@@ -30,6 +30,7 @@ class BasicNN(nn.Module, ABC):
     _nn_type: BasicNNType
     token_postag_list: list[str]
     mention_tag_list: list[str]
+    relation_tag_list: list[str]
 
     def __init__(
         self,
@@ -44,6 +45,7 @@ class BasicNN(nn.Module, ABC):
         self.word2vec = Word2VecModel()
         self.token_postag_list = self._get_token_postag_list(documents=documents)
         self.mention_tag_list = self._get_mention_tag_list(documents=documents)
+        self.relation_tag_list = self._get_relation_tag_list(documents=documents)
 
         if schema_id is not None:
             self._load_from_file(schema_id)
@@ -108,7 +110,13 @@ class BasicNN(nn.Module, ABC):
 
         score = 0
         for test_document in test_documents:
-            prediction = self.predict(test_document)
+            if self._nn_type == BasicNNType.ENTITY_NN:
+                prediction = self.predict(test_document.mentions)
+            if self._nn_type == BasicNNType.MENTION_NN:
+                prediction = self.predict(test_document.tokens)
+            if self._nn_type == BasicNNType.RELATION_NN:
+                prediction = self.predict(test_document.mentions)
+
             score += self._evaluate_prediction_against_truth(
                 prediction=prediction, truth=test_document
             )
@@ -187,16 +195,34 @@ class BasicNN(nn.Module, ABC):
                 tag_list.append(mention.tag)
         return list(set(tag_list))
 
+    def _get_relation_tag_list(self, documents: typing.List[Document]):
+        tag_list = []
+        for document in documents:
+            for relation in document.relations:
+                tag_list.append(relation.tag)
+        return list(set(tag_list))
+
     def _get_mention_tag_nn_input_list(self, mention: Mention):
-        nn_output_list = []
+        nn_tag_list = []
         if mention is None:
             return [0] * len(self.mention_tag_list)
         for tag in self.mention_tag_list:
             if mention.tag == tag:
-                nn_output_list.append(1)
+                nn_tag_list.append(1)
             else:
-                nn_output_list.append(0)
-        return nn_output_list
+                nn_tag_list.append(0)
+        return nn_tag_list
+
+    def _get_relation_tag_nn_input_list(self, relation: Relation):
+        nn_tag_list = []
+        if relation is None:
+            return [0] * len(self.relation_tag_list)
+        for tag in self.relation_tag_list:
+            if relation.tag == tag:
+                nn_tag_list.append(1)
+            else:
+                nn_tag_list.append(0)
+        return nn_tag_list
 
     def _get_token_postag_nn_input_list(self, token: Token):
         nn_input_list = []
@@ -222,6 +248,15 @@ class BasicNN(nn.Module, ABC):
         for token in mention.tokens:
             text += f"{token.text} "
         return text
+
+    def _get_string_similarity(self, string0: str, string1: str) -> float:
+        set0 = set(string0.lower())
+        set1 = set(string1.lower())
+        setIntersection = set0.intersection(set1)
+        intersection = len(setIntersection)
+        setUnion = set0.union(set1)
+        union = len(setUnion)
+        return intersection / union
 
     @abstractmethod
     def _init_layer(self):

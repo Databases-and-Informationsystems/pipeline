@@ -170,15 +170,6 @@ class EntityBasicNN(BasicNN):
                     return entity
         return
 
-    def _get_string_similarity(self, string0: str, string1: str) -> float:
-        set0 = set(string0.lower())
-        set1 = set(string1.lower())
-        setIntersection = set0.intersection(set1)
-        intersection = len(setIntersection)
-        setUnion = set0.union(set1)
-        union = len(setUnion)
-        return intersection / union
-
     def _cluster_pairs(self, pairs):
         clusters = []
         for a, b in pairs:

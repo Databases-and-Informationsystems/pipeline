@@ -11,13 +11,14 @@ from ..model.schema import Schema
 from ..model.settings import ModelSize, TrainModelType
 from ..train.factory import RelationTrainerFactory
 from ..train.trainers.relation_trainer import RelationTrainer
-from ..restx_dtos import train_entity_input
+from ..restx_dtos import train_entity_input, training_results
 
 
 @ns.route("/relation")
 class RelationTrainController(Resource):
 
     @ns.expect(train_entity_input, validate=True)
+    @ns.marshal_with(training_results, code=200)
     @ns.doc(
         params={
             "model_type": {
@@ -43,6 +44,7 @@ class RelationTrainController(Resource):
         """
         Train neural network for relation detection.
         """
+        print("train relations...")
 
         data = request.get_json()
         documents_data = data.get("documents")
@@ -64,6 +66,6 @@ class RelationTrainController(Resource):
             }
         )
 
-        relation_trainer.train(documents=documents, schema=schema)
+        training_results = relation_trainer.train(documents=documents, schema=schema)
 
-        return "hallo"
+        return training_results
