@@ -41,6 +41,16 @@ class EntityBasicNN(BasicNN):
         self.fc4 = nn.Linear(30, 10)
         self.fc5 = nn.Linear(10, 1)
 
+    def _get_input_output_size(self):
+        input_size = (
+            6
+            + 2 * len(self.mention_tag_list)
+            + 2 * len(self.token_postag_list)
+            + 2 * self.word2vec.vector_size
+        )
+        output_size = 1
+        return input_size, output_size
+
     def _get_single_input(self, mention0: Mention, mention1: Mention):
         single_X_input = []
 

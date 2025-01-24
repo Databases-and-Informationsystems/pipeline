@@ -28,18 +28,15 @@ class RelationBasicNN(BasicNN):
             schema_id=schema_id,
         )
 
-    def _init_layer(self):
-        self.fc1 = nn.Linear(
+    def _get_input_output_size(self):
+        input_size = (
             6
             + 2 * len(self.mention_tag_list)
             + 2 * len(self.token_postag_list)
-            + 2 * self.word2vec.vector_size,
-            100,
+            + 2 * self.word2vec.vector_size
         )
-        self.fc2 = nn.Linear(100, 50)
-        self.fc3 = nn.Linear(50, 30)
-        self.fc4 = nn.Linear(30, 10)
-        self.fc5 = nn.Linear(10, 1 + len(self.relation_tag_list))
+        output_size = 1 + len(self.relation_tag_list)
+        return input_size, output_size
 
     def _get_single_input(self, head_mention: Mention, tail_mention: Mention):
         single_X_input = []

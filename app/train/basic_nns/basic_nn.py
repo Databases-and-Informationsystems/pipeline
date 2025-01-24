@@ -140,6 +140,16 @@ class BasicNN(nn.Module, ABC):
         print(sum(score) / len(score))
         return sum(score) / len(score)
 
+    def _get_hidden_layer_sizes(self) -> list[int]:
+        if self.size == ModelSize.SMALL:
+            return [50, 25, 15, 10]
+        elif self.size == ModelSize.BIG:
+            return [200, 100, 50, 25]
+        elif self.size == ModelSize.MEDIUM:
+            return [100, 50, 30, 10]
+        else:
+            raise ValueError(f"ModelSize '{self.size}' is not supported.")
+
     def save_as_file(self, schema_id):
         directory = f"basic_nn/{self._nn_type.value}/{schema_id}"
         if not os.path.exists(directory):
@@ -277,8 +287,18 @@ class BasicNN(nn.Module, ABC):
         union = len(setUnion)
         return intersection / union
 
-    @abstractmethod
     def _init_layer(self):
+        input_size, output_size = self._get_input_output_size()
+        hidden_sizes = self._get_hidden_layer_sizes()
+
+        self.fc1 = nn.Linear(input_size, hidden_sizes[0])
+        self.fc2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
+        self.fc3 = nn.Linear(hidden_sizes[1], hidden_sizes[2])
+        self.fc4 = nn.Linear(hidden_sizes[2], hidden_sizes[3])
+        self.fc5 = nn.Linear(hidden_sizes[3], output_size)
+
+    @abstractmethod
+    def _get_input_output_size(self):
         pass
 
     @abstractmethod

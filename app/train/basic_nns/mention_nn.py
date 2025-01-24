@@ -31,14 +31,10 @@ class MentionBasicNN(BasicNN):
             schema_id=schema_id,
         )
 
-    def _init_layer(self):
-        self.fc1 = nn.Linear(
-            4 + 2 * len(self.token_postag_list) + 2 * self.word2vec.vector_size, 100
-        )
-        self.fc2 = nn.Linear(100, 50)
-        self.fc3 = nn.Linear(50, 30)
-        self.fc4 = nn.Linear(30, 10)
-        self.fc5 = nn.Linear(10, 3 + 2 * len(self.mention_tag_list))
+    def _get_input_output_size(self):
+        input_size = 4 + 2 * len(self.token_postag_list) + 2 * self.word2vec.vector_size
+        output_size = 3 + 2 * len(self.mention_tag_list)
+        return input_size, output_size
 
     def _get_mention_by_token(self, document: Document, token_index: int):
         for mention in document.mentions:
