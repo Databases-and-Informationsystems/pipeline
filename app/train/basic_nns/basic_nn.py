@@ -102,26 +102,43 @@ class BasicNN(nn.Module, ABC):
 
     def evaluate(self, schema: Schema, documents: typing.List[Document]) -> str:
         random.shuffle(documents)
-        split_index = int(len(documents) * 0.8)
-        train_documents = documents[:split_index]
-        test_documents = documents[split_index:]
+        num_splits = 5
+        split_size = len(documents) // num_splits
+        splits = [
+            documents[i * split_size : (i + 1) * split_size] for i in range(num_splits)
+        ]
 
-        self.start_training(documents=train_documents)
+        remainder = len(documents) % num_splits
+        for i in range(remainder):
+            splits[i].append(documents[num_splits * split_size + i])
 
-        score = 0
-        for test_document in test_documents:
-            if self._nn_type == BasicNNType.ENTITY_NN:
-                prediction = self.predict(test_document.mentions)
-            if self._nn_type == BasicNNType.MENTION_NN:
-                prediction = self.predict(test_document.tokens)
-            if self._nn_type == BasicNNType.RELATION_NN:
-                prediction = self.predict(test_document.mentions)
+        score = []
+        for fold in range(num_splits):
+            test_set = splits[fold]
+            train_set = [
+                doc for i, split in enumerate(splits) if i != fold for doc in split
+            ]
 
-            score += self._evaluate_prediction_against_truth(
-                prediction=prediction, truth=test_document
-            )
-        print(score / len(test_documents))
-        return score / len(test_documents)
+            print(f"Durchgang {fold + 1} von {num_splits}")
+
+            self._init_layer()
+            self.start_training(documents=train_set)
+
+            for test_document in test_set:
+                if self._nn_type == BasicNNType.ENTITY_NN:
+                    prediction = self.predict(test_document.mentions)
+                if self._nn_type == BasicNNType.MENTION_NN:
+                    prediction = self.predict(test_document.tokens)
+                if self._nn_type == BasicNNType.RELATION_NN:
+                    prediction = self.predict(test_document.mentions)
+
+                score.append(
+                    self._evaluate_prediction_against_truth(
+                        prediction=prediction, truth=test_document
+                    )
+                )
+        print(sum(score) / len(score))
+        return sum(score) / len(score)
 
     def save_as_file(self, schema_id):
         directory = f"basic_nn/{self._nn_type.value}/{schema_id}"
