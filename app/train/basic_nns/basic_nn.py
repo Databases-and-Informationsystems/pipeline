@@ -134,6 +134,7 @@ class BasicNN(nn.Module, ABC):
         metadata = {
             "token_postag_list": self.token_postag_list,
             "mention_tag_list": self.mention_tag_list,
+            "relation_tag_list": self.relation_tag_list,
             "layer_sizes": [
                 self.fc1.in_features,
                 self.fc1.out_features,
@@ -170,6 +171,7 @@ class BasicNN(nn.Module, ABC):
 
         self.token_postag_list = metadata["token_postag_list"]
         self.mention_tag_list = metadata["mention_tag_list"]
+        self.relation_tag_list = metadata["relation_tag_list"]
 
         layer_sizes = metadata["layer_sizes"]
         self.fc1 = nn.Linear(layer_sizes[0], layer_sizes[1])

@@ -4,9 +4,10 @@ from abc import ABC, abstractmethod
 
 from app.model.settings import Temperature
 from app.pipeline.models.llm import GptModel, LLMRelationPrediction
-from app.model.document import Mention, CEntity
+from app.model.document import Mention, CEntity, CRelation
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
+from app.train.basic_nns.relation_nn import RelationBasicNN
 
 
 class RelationStep(PipelineStep, ABC):
@@ -61,3 +62,26 @@ class RelationPrediction(RelationStep):
             raise ValueError(f"Error decoding prediction data: {e}") from e
 
         return prediction_data
+
+
+class NNRelationStep(RelationStep):
+    model: RelationBasicNN
+
+    def __init__(
+        self,
+        model: RelationBasicNN,
+        name: str = "RelationPrediction",
+    ):
+        super().__init__(name)
+        self.model = model
+
+    def _train(self):
+        pass
+
+    def _run(
+        self, content: str, schema: Schema, mentions: typing.List[Mention]
+    ) -> typing.List[CRelation]:
+
+        c_relations = self.model.predict(mentions=mentions)
+
+        return c_relations

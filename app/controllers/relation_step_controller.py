@@ -8,7 +8,7 @@ from pydantic import TypeAdapter
 from . import steps_ns as ns, get_document_id, caching_enabled
 from ..model.document import Mention
 from ..model.schema import Schema
-from ..model.settings import GptModel, Temperature
+from ..model.settings import GptModel, Temperature, PredictModelType
 from ..pipeline.factory import RelationStepFactory
 from ..pipeline.steps.relation_prediction import RelationStep
 from ..restx_dtos import relation_step_input, new_relation
@@ -25,7 +25,7 @@ class RelationStepController(Resource):
             "model_type": {
                 "description": "Recommendation System that should be used.",
                 "required": True,
-                "enum": ["llm"],
+                "enum": [model_type.value for model_type in PredictModelType],
             },
             "model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",

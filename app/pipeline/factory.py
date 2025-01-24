@@ -7,7 +7,11 @@ from app.pipeline.steps.entity_prediction import (
     EntityStep,
     NNEntityStep,
 )
-from app.pipeline.steps.relation_prediction import RelationStep, RelationPrediction
+from app.pipeline.steps.relation_prediction import (
+    RelationStep,
+    RelationPrediction,
+    NNRelationStep,
+)
 from app.pipeline.steps.tokenizer import Tokenizer, TokenizeStep
 from app.pipeline.steps.mention_prediction import (
     LLMMentionStep,
@@ -16,6 +20,7 @@ from app.pipeline.steps.mention_prediction import (
 )
 from app.train.basic_nns.mention_nn import MentionBasicNN
 from app.train.basic_nns.entity_nn import EntityBasicNN
+from app.train.basic_nns.relation_nn import RelationBasicNN
 
 
 class TokenizeStepFactory:
@@ -100,6 +105,9 @@ class RelationStepFactory:
                 temperature=(Temperature.from_string(temperature)),
                 model=model,
             )
+        elif settings.get("model_type") == "basic_nn":
+            model = RelationBasicNN(schema_id=settings.get("schema_id"))
+            return NNRelationStep(model=model)
         else:
             raise ValueError(
                 f"model_type '{settings.get('model_type')}' is not supported."
