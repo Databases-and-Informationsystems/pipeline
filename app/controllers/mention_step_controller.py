@@ -9,14 +9,30 @@ from . import steps_ns as ns, caching_enabled, get_document_id
 from ..model.document import Token, CMention
 from ..model.schema import Schema
 from ..model.settings import GptModel, Temperature
-from ..pipeline.factory import MentionStepFactory
-from ..pipeline.steps.mention_prediction import MentionStep
-from ..restx_dtos import mention_step_input, new_mention
+from ..pipeline.factory import MentionStepFactory, get_mention_settings
+from ..pipeline.steps.mention_prediction import (
+    MentionStep,
+    MentionModelType,
+)
+from ..restx_dtos import mention_step_input, new_mention, model_type_with_settings
 from ..util.file import read_json_from_file, create_file_from_data
 
 
 @ns.route("/mention")
 class MentionStepController(Resource):
+
+    @ns.doc(
+        description="Defines all possible _model_types_ with its possible _settings_ for the mention detection step.",
+    )
+    @ns.marshal_with(model_type_with_settings, as_list=True, code=200)
+    def get(self):
+        return [
+            {
+                "model_type": model_type.value,
+                "settings": get_mention_settings(model_type),
+            }
+            for model_type in MentionModelType
+        ]
 
     @ns.expect(mention_step_input, validate=True)
     @ns.marshal_with(new_mention, as_list=True, code=200)
@@ -25,7 +41,7 @@ class MentionStepController(Resource):
             "model_type": {
                 "description": "Recommendation System that should be used.",
                 "required": True,
-                "enum": MentionStep.model_types,
+                "enum": [modelType.value for modelType in MentionModelType],
             },
             "model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",
@@ -37,7 +53,8 @@ class MentionStepController(Resource):
                 "required": False,
                 "enum": [temperature.value for temperature in Temperature],
             },
-        }
+        },
+        description="Executes the mention detection step.",
     )
     @ns.response(400, "Invalid input")
     @ns.response(500, "Internal server error")

@@ -1,6 +1,7 @@
 import json
 import typing
 from abc import ABC, abstractmethod
+from enum import Enum
 
 from app.model.settings import Temperature
 from app.pipeline.models.llm import GptModel, LLMRelationPrediction
@@ -9,8 +10,11 @@ from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 
 
+class RelationModelType(Enum):
+    LLM = "llm"
+
+
 class RelationStep(PipelineStep, ABC):
-    model_types = ["llm"]
 
     def __init__(
         self,
