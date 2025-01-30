@@ -2,7 +2,7 @@ import gensim.downloader as api
 from gensim.models import KeyedVectors
 import numpy as np
 import os
-import logging
+import typing
 
 
 class Word2VecModel:
@@ -32,14 +32,12 @@ class Word2VecModel:
     def get_vector(self, word: str):
         if Word2VecModel._model is None:
             raise ValueError("failed to word2vec model")
-
         try:
             return Word2VecModel._model[word]
         except KeyError:
             return None
 
-    def get_vector_for_multiple_words(self, string: str):
-        words = string.split(" ")
+    def get_vector_for_multiple_words(self, words: typing.List[str]):
         word_vectors = []
 
         for word in words:

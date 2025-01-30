@@ -61,8 +61,8 @@ class RelationBasicNN(BasicNN):
         index_distance = head_mention.id - tail_mention.id
         single_X_input.append(abs(index_distance))
 
-        wordvec0 = self.word2vec.get_vector(haed_str)
-        wordvec1 = self.word2vec.get_vector(tail_str)
+        wordvec0 = self.word2vec.get_vector_for_multiple_words(haed_str.split(" "))
+        wordvec1 = self.word2vec.get_vector_for_multiple_words(tail_str.split(" "))
 
         if wordvec0 is None:
             for i in range(self.word2vec.vector_size):

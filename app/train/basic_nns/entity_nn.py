@@ -74,8 +74,8 @@ class EntityBasicNN(BasicNN):
         index_distance = mention0.id - mention1.id
         single_X_input.append(abs(index_distance))
 
-        wordvec0 = self.word2vec.get_vector(str0)
-        wordvec1 = self.word2vec.get_vector(str1)
+        wordvec0 = self.word2vec.get_vector_for_multiple_words(str0.split(" "))
+        wordvec1 = self.word2vec.get_vector_for_multiple_words(str1.split(" "))
 
         if wordvec0 is None:
             for i in range(self.word2vec.vector_size):

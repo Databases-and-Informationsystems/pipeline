@@ -102,6 +102,6 @@ class NNEntityStep(EntityStep):
     def _run(
         self, content: str, schema: Schema, mentions: typing.List[Mention]
     ) -> typing.List[typing.List[int]]:
-        c_mentions = self.model.predict(mentions=mentions)
+        c_entities = self.model.predict(mentions=mentions)
 
-        return c_mentions
+        return c_entities
