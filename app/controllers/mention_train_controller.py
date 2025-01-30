@@ -11,13 +11,13 @@ from ..model.schema import Schema
 from ..model.settings import ModelSize, TrainModelType
 from ..train.factory import MentionTrainerFactory
 from ..train.trainers.mention_trainer import MentionTrainer
-from ..restx_dtos import train_entity_input, training_results
+from ..restx_dtos import train_nn_input, training_results
 
 
 @ns.route("/mention")
 class MentionTrainController(Resource):
 
-    @ns.expect(train_entity_input, validate=True)
+    @ns.expect(train_nn_input, validate=True)
     @ns.marshal_with(training_results, code=200)
     @ns.doc(
         params={
