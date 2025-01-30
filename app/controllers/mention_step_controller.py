@@ -43,7 +43,7 @@ class MentionStepController(Resource):
                 "required": True,
                 "enum": [modelType.value for modelType in MentionModelType],
             },
-            "model": {
+            "gpt-model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",
                 "required": False,
                 "enum": [model.value for model in GptModel],
@@ -79,7 +79,7 @@ class MentionStepController(Resource):
         mention_pipeline_step: MentionStep = MentionStepFactory.create(
             settings={
                 "model_type": request.args.get("model_type"),
-                "model": request.args.get("model"),
+                "gpt-model": request.args.get("gpt-model"),
                 "temperature": request.args.get("temperature"),
             },
         )

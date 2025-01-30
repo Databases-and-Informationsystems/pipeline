@@ -37,14 +37,14 @@ class MentionStepFactory:
                 if settings and settings.get("temperature")
                 else Temperature.get_default()
             )
-            model: GptModel = (
-                GptModel.from_string(settings.get("model"))
-                if settings and settings.get("model")
+            gpt_model: GptModel = (
+                GptModel.from_string(settings.get("gpt-model"))
+                if settings and settings.get("gpt-model")
                 else GptModel.get_default()
             )
             return LLMMentionStep(
                 temperature=temperature,
-                model=model,
+                gpt_model=gpt_model,
             )
         else:
             raise ValueError(
@@ -59,7 +59,7 @@ def get_mention_settings(model_type: MentionModelType) -> dict:
                 "values": [t.value for t in Temperature],
                 "default": Temperature.get_default().value,
             },
-            "model": {
+            "gpt-model": {
                 "values": [m.value for m in GptModel],
                 "default": GptModel.get_default().value,
             },
@@ -76,14 +76,14 @@ class EntityStepFactory:
                 if settings and settings.get("temperature")
                 else Temperature.get_default()
             )
-            model: GptModel = (
-                GptModel.from_string(settings.get("model"))
-                if settings and settings.get("model")
+            gpt_model: GptModel = (
+                GptModel.from_string(settings.get("gpt-model"))
+                if settings and settings.get("gpt-model")
                 else GptModel.get_default()
             )
             return EntityPrediction(
                 temperature=temperature,
-                model=model,
+                gpt_model=gpt_model,
             )
         else:
             raise ValueError(
@@ -98,7 +98,7 @@ def get_entity_settings(model_type: EntityModelType) -> dict:
                 "values": [t.value for t in Temperature],
                 "default": Temperature.get_default().value,
             },
-            "model": {
+            "gpt-model": {
                 "values": [m.value for m in GptModel],
                 "default": GptModel.get_default().value,
             },
@@ -115,14 +115,14 @@ class RelationStepFactory:
                 if settings and settings.get("temperature")
                 else Temperature.get_default()
             )
-            model: GptModel = (
-                GptModel.from_string(settings.get("model"))
-                if settings and settings.get("model")
+            gpt_model: GptModel = (
+                GptModel.from_string(settings.get("gpt-model"))
+                if settings and settings.get("gpt-model")
                 else GptModel.get_default()
             )
             return RelationPrediction(
                 temperature=temperature,
-                model=model,
+                gpt_model=gpt_model,
             )
         else:
             raise ValueError(
@@ -137,7 +137,7 @@ def get_relation_settings(model_type: RelationModelType) -> dict:
                 "values": [t.value for t in Temperature],
                 "default": Temperature.get_default().value,
             },
-            "model": {
+            "gpt-model": {
                 "values": [m.value for m in GptModel],
                 "default": GptModel.get_default().value,
             },

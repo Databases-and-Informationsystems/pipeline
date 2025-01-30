@@ -40,7 +40,7 @@ class RelationStepController(Resource):
                 "required": True,
                 "enum": [mt.value for mt in RelationModelType],
             },
-            "model": {
+            "gpt-model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",
                 "required": False,
                 "enum": [model.value for model in GptModel],
@@ -75,7 +75,7 @@ class RelationStepController(Resource):
         relation_pipeline_step: RelationStep = RelationStepFactory.create(
             settings={
                 "model_type": request.args.get("model_type"),
-                "model": request.args.get("model"),
+                "gpt-model": request.args.get("gpt-model"),
                 "temperature": request.args.get("temperature"),
             },
         )

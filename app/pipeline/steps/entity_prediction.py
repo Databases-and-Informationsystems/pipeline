@@ -37,17 +37,17 @@ class EntityStep(PipelineStep, ABC):
 
 class EntityPrediction(EntityStep):
     temperature: Temperature
-    model: GptModel
+    gpt_model: GptModel
 
     def __init__(
         self,
         temperature: Temperature,
-        model: GptModel,
+        gpt_model: GptModel,
         name: str = "MentionPrediction",
     ):
         super().__init__(name)
         self.temperature = temperature
-        self.model = model
+        self.gpt_model = gpt_model
 
     def _train(self):
         pass
@@ -57,7 +57,7 @@ class EntityPrediction(EntityStep):
     ) -> typing.List[typing.List[int]]:
 
         llm_entity_detection = LLMEntityPrediction(
-            model=self.model, temperature=self.temperature
+            model=self.gpt_model, temperature=self.temperature
         )
 
         prediction_json = llm_entity_detection.run(
