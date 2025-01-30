@@ -224,8 +224,8 @@ relation_step_input = api.model(
 # Train Entity neural network
 ### --------------------------------------------------------------------------------------------------------------------
 
-train_entity_input = api.model(
-    "TrainEntityNNInput",
+train_nn_input = api.model(
+    "TrainNNInput",
     {
         "schema": fields.Nested(schema_input_for_relations, required=True),
         "documents": fields.List(fields.Nested(document)),
