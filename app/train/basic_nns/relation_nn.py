@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 import itertools
 
-
+import basic_nn_utils
 from app.model.document import Document, CEntity, Mention, CRelation
 from app.model.schema import Schema
 from app.model.settings import ModelSize
@@ -85,7 +85,7 @@ class RelationBasicNN(BasicNN):
     ):
         single_y_output = []
 
-        relation = self._get_relation_by_mentions(
+        relation = basic_nn_utils.get_relation_by_mentions(
             document=document,
             head_mention_index=head_mention.id,
             tail_mention_index=tail_mention.id,
@@ -100,17 +100,6 @@ class RelationBasicNN(BasicNN):
         single_y_output += self._get_relation_tag_nn_input_list(relation)
 
         return single_y_output
-
-    def _get_relation_by_mentions(
-        self, document: Document, head_mention_index: int, tail_mention_index: int
-    ) -> Mention:
-        for relation in document.relations:
-            if (
-                relation.head_mention.id == head_mention_index
-                and relation.tail_mention.id
-            ):
-                return relation
-        return
 
     def _prepare_train_data(self, documents: typing.List[Document]):
         X = []

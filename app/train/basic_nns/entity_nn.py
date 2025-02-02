@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 import itertools
 
-
+import basic_nn_utils
 from app.model.document import Document, CEntity, Mention, CMention
 from app.model.schema import Schema
 from app.model.settings import ModelSize
@@ -106,10 +106,10 @@ class EntityBasicNN(BasicNN):
                     single_X_input = self._get_single_input(mention0, mention1)
                     X.append(single_X_input)
 
-                    entity0 = self._get_entity_by_mention(
+                    entity0 = basic_nn_utils.get_entity_by_mention(
                         document=document, mention_index=mention0.id
                     )
-                    entity1 = self._get_entity_by_mention(
+                    entity1 = basic_nn_utils.get_entity_by_mention(
                         document=document, mention_index=mention0.id
                     )
 
@@ -145,7 +145,7 @@ class EntityBasicNN(BasicNN):
                 mentionId1 = prediction[0][1]
                 pairs.append([mentionId0, mentionId1])
 
-        cluster = self._cluster_pairs(pairs)
+        cluster = basic_nn_utils.cluster_pairs(pairs)
         entitys: typing.List[CEntity] = []
         for mention_ids in cluster:
             pred_mentions: typing.List[Mention] = []
@@ -172,26 +172,3 @@ class EntityBasicNN(BasicNN):
                 if set(pred_index_list) == set(true_index_list):
                     counter += 1
         return counter * 2 / (len(truth.mentions) + len(prediction))
-
-    def _get_entity_by_mention(self, document: Document, mention_index: int) -> Mention:
-        for entity in document.entitys:
-            for mention in entity.mentions:
-                if mention.id == mention_index:
-                    return entity
-        return
-
-    def _cluster_pairs(self, pairs):
-        clusters = []
-        for a, b in pairs:
-            overlapping = [
-                cluster for cluster in clusters if a in cluster or b in cluster
-            ]
-
-            if overlapping:
-                merged_cluster = set(itertools.chain(*overlapping)) | {a, b}
-                clusters = [c for c in clusters if c not in overlapping]
-                clusters.append(merged_cluster)
-            else:
-                clusters.append({a, b})
-
-        return [list(cluster) for cluster in clusters]

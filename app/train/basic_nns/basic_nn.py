@@ -11,6 +11,7 @@ import torch.optim as optim
 from abc import ABC, abstractmethod
 from enum import Enum
 
+import basic_nn_utils
 from app.model.document import Document, Token, Mention, Relation
 from app.model.schema import Schema
 from app.model.settings import ModelSize
@@ -43,9 +44,13 @@ class BasicNN(nn.Module, ABC):
         self._nn_type = nn_type
         self.size = size
         self.word2vec = Word2VecModel()
-        self.token_postag_list = self._get_token_postag_list(documents=documents)
-        self.mention_tag_list = self._get_mention_tag_list(documents=documents)
-        self.relation_tag_list = self._get_relation_tag_list(documents=documents)
+        self.token_postag_list = basic_nn_utils.get_token_postag_list(
+            documents=documents
+        )
+        self.mention_tag_list = basic_nn_utils.get_mention_tag_list(documents=documents)
+        self.relation_tag_list = basic_nn_utils.get_relation_tag_list(
+            documents=documents
+        )
 
         if schema_id is not None:
             self._load_from_file(schema_id)
@@ -209,27 +214,6 @@ class BasicNN(nn.Module, ABC):
 
         self.load_state_dict(torch.load(file_path_model))
         print(f"Model successfully loaded from {file_path_model}")
-
-    def _get_token_postag_list(self, documents: typing.List[Document]):
-        postag_list = []
-        for document in documents:
-            for token in document.tokens:
-                postag_list.append(token.pos_tag)
-        return list(set(postag_list))
-
-    def _get_mention_tag_list(self, documents: typing.List[Document]):
-        tag_list = []
-        for document in documents:
-            for mention in document.mentions:
-                tag_list.append(mention.tag)
-        return list(set(tag_list))
-
-    def _get_relation_tag_list(self, documents: typing.List[Document]):
-        tag_list = []
-        for document in documents:
-            for relation in document.relations:
-                tag_list.append(relation.tag)
-        return list(set(tag_list))
 
     def _get_mention_tag_nn_input_list(self, mention: Mention):
         nn_tag_list = []

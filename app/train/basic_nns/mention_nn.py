@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+import basic_nn_utils
 from app.model.document import Document, Token, Mention, CMention
 from app.model.schema import Schema
 from app.model.settings import ModelSize
@@ -150,7 +151,6 @@ class MentionBasicNN(BasicNN):
                 mentions.append(mention)
                 mention = None
 
-        # wird mit dynamischer Modellgröße schöner gemacht
         output_neuron_const = 3
 
         for mention in mentions:
@@ -186,7 +186,9 @@ class MentionBasicNN(BasicNN):
     ):
         truth_cmentions: typing.List[CMention] = []
         for truth_entry in truth.mentions:
-            start, end = self._get_min_max_token_indices_by_mention(truth_entry)
+            start, end = basic_nn_utils.get_min_max_token_indices_by_mention(
+                truth_entry
+            )
 
             cmention = CMention(
                 endTokenDocumentIndex=start,
@@ -207,13 +209,3 @@ class MentionBasicNN(BasicNN):
                 ):
                     equal_counter += 1
         return equal_counter * 2 / (len(truth_cmentions) + len(prediction))
-
-    def _get_min_max_token_indices_by_mention(
-        self,
-        mention: Mention,
-    ) -> typing.Tuple[int, int]:
-        token_indices = []
-        for token in mention.tokens:
-            token_indices.append(token.id)
-
-        return min(token_indices), max(token_indices)
