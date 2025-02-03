@@ -20,7 +20,7 @@ from app.word_embeddings.word2vec import Word2VecModel
 
 class BasicNNType(Enum):
     MENTION_NN = "mentions"
-    ENTITY_NN = "entitys"
+    ENTITY_NN = "entities"
     RELATION_NN = "relations"
 
 
