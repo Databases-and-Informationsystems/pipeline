@@ -3,7 +3,11 @@ import typing
 import torch
 import numpy as np
 
-from app.train.basic_nns.basic_nn_utils import get_min_max_token_indices_by_mention
+from app.train.basic_nns.basic_nn_utils import (
+    get_min_max_token_indices_by_mention,
+    get_token_postag_list,
+    get_mention_tag_list,
+)
 from app.model.document import Document, Token, Mention, CMention
 from app.model.settings import ModelSize
 from app.train.basic_nns.basic_nn import BasicNN, BasicNNType
@@ -20,8 +24,8 @@ class MentionBasicNN(BasicNN):
         documents: typing.List[Document] = [],
         schema_id: typing.Optional[str] = None,
     ):
-        self.token_postag_list = self._get_token_postag_list(documents=documents)
-        self.mention_tag_list = self._get_mention_tag_list(documents=documents)
+        self.token_postag_list = get_token_postag_list(documents=documents)
+        self.mention_tag_list = get_mention_tag_list(documents=documents)
         super().__init__(
             nn_type=BasicNNType.MENTION_NN,
             size=size,
