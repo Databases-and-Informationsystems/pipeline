@@ -12,6 +12,7 @@ from app.train.basic_nns.basic_nn_utils import get_relation_by_mentions
 class RelationBasicNN(BasicNN):
     def __init__(
         self,
+        name: str,
         size: ModelSize = ModelSize.MEDIUM,
         documents: typing.List[Document] = [],
         schema_id: typing.Optional[str] = None,
@@ -19,6 +20,7 @@ class RelationBasicNN(BasicNN):
         super().__init__(
             nn_type=BasicNNType.RELATION_NN,
             size=size,
+            name=name,
             documents=documents,
             schema_id=schema_id,
         )
@@ -56,22 +58,20 @@ class RelationBasicNN(BasicNN):
         index_distance = head_mention.id - tail_mention.id
         single_X_input.append(abs(index_distance))
 
-        wordvec0 = self.word2vec.get_vector_for_multiple_words(haed_str.split(" "))
-        wordvec1 = self.word2vec.get_vector_for_multiple_words(tail_str.split(" "))
+        wordvec0 = self.word2vec.get_vector_for_multiple_words(haed_str.split())
+        wordvec1 = self.word2vec.get_vector_for_multiple_words(tail_str.split())
 
-        if wordvec0 is None or wordvec0 is np.nan:
-            for i in range(self.word2vec.vector_size):
-                single_X_input.append(0)
-        else:
-            for i in range(self.word2vec.vector_size):
-                single_X_input.append(wordvec0[i])
+        vector_size = self.word2vec.vector_size
 
-        if wordvec1 is None or wordvec1 is np.nan:
-            for i in range(self.word2vec.vector_size):
-                single_X_input.append(0)
+        if wordvec0 is None or np.isnan(wordvec0).all():
+            single_X_input.extend([0] * vector_size)
         else:
-            for i in range(self.word2vec.vector_size):
-                single_X_input.append(wordvec1[i])
+            single_X_input.extend(wordvec0)
+
+        if wordvec1 is None or np.isnan(wordvec1).all():
+            single_X_input.extend([0] * vector_size)
+        else:
+            single_X_input.extend(wordvec1)
 
         return single_X_input
 

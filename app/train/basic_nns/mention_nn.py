@@ -15,6 +15,7 @@ class MentionBasicNN(BasicNN):
 
     def __init__(
         self,
+        name: str,
         size: ModelSize = ModelSize.MEDIUM,
         documents: typing.List[Document] = [],
         schema_id: typing.Optional[str] = None,
@@ -24,6 +25,7 @@ class MentionBasicNN(BasicNN):
         super().__init__(
             nn_type=BasicNNType.MENTION_NN,
             size=size,
+            name=name,
             documents=documents,
             schema_id=schema_id,
         )
@@ -55,19 +57,17 @@ class MentionBasicNN(BasicNN):
         wordvec0 = self.word2vec.get_vector(token0.text)
         wordvec1 = self.word2vec.get_vector(token1.text)
 
-        if wordvec0 is None or wordvec0 is np.nan:
-            for i in range(self.word2vec.vector_size):
-                single_X_input.append(0)
-        else:
-            for i in range(self.word2vec.vector_size):
-                single_X_input.append(wordvec0[i])
+        vector_size = self.word2vec.vector_size
 
-        if wordvec1 is None or wordvec1 is np.nan:
-            for i in range(self.word2vec.vector_size):
-                single_X_input.append(0)
+        if wordvec0 is None or np.isnan(wordvec0).all():
+            single_X_input.extend([0] * vector_size)
         else:
-            for i in range(self.word2vec.vector_size):
-                single_X_input.append(wordvec1[i])
+            single_X_input.extend(wordvec0)
+
+        if wordvec1 is None or np.isnan(wordvec1).all():
+            single_X_input.extend([0] * vector_size)
+        else:
+            single_X_input.extend(wordvec1)
 
         return single_X_input
 

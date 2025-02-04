@@ -53,6 +53,11 @@ class MentionStepController(Resource):
                 "required": False,
                 "enum": [temperature.value for temperature in Temperature],
             },
+            "name": {
+                "description": "Name of the neural network. You need a trained neural network with this name",
+                "required": True,
+                "type": "string",
+            },
         },
         description="Executes the mention detection step.",
     )
@@ -76,14 +81,7 @@ class MentionStepController(Resource):
         ]
         schema = TypeAdapter(Schema).validate_json(json.dumps(schema_data))
 
-        mention_pipeline_step: MentionStep = MentionStepFactory.create(
-            settings={
-                "model_type": request.args.get("model_type"),
-                "model": request.args.get("model"),
-                "temperature": request.args.get("temperature"),
-                "schema_id": schema.id,
-            },
-        )
+        mention_pipeline_step: MentionStep = MentionStepFactory.create(request.args)
 
         document_id = get_document_id(data)
 

@@ -80,7 +80,7 @@ class EntityBasicNN(BasicNN):
         wordvec0 = self.word2vec.get_vector_for_multiple_words(str0.split())
         wordvec1 = self.word2vec.get_vector_for_multiple_words(str1.split())
 
-        vector_size = Word2VecModel._model.vector_size
+        vector_size = self.word2vec.vector_size
 
         if wordvec0 is None or np.isnan(wordvec0).all():
             single_X_input.extend([0] * vector_size)

@@ -52,7 +52,7 @@ class MentionStepFactory:
                 )
             case MentionModelType.BASIC_NEURAL_NETWORK:
                 mention_basic_nn: MentionBasicNN = MentionBasicNN(
-                    schema_id=settings.get("schema_id")
+                    name=settings.get("name")
                 )
                 return NNMentionStep(model=mention_basic_nn)
 
@@ -143,7 +143,7 @@ class RelationStepFactory:
                 )
             case RelationModelType.BASIC_NEURAL_NETWORK:
                 relation_basic_nn: RelationBasicNN = RelationBasicNN(
-                    schema_id=settings.get("schema_id")
+                    name=settings.get("name")
                 )
                 return NNRelationStep(model=relation_basic_nn)
         raise ValueError(f"model_type '{settings.get('model_type')}' is not supported.")

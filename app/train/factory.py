@@ -27,8 +27,9 @@ class MentionTrainerFactory:
         match model_type:
             case MentionTrainModelType.BASIC_NEURAL_NETWORK:
                 size = ModelSize.from_string(settings.get("model_size"))
-                evaluate = settings.get("evaluate")
-                return NNMentionTrainer(size=size, evaluate=evaluate)
+                evaluate = settings.get("enable_evaluation").lower() == "true"
+                nn_name = settings.get("name")
+                return NNMentionTrainer(size=size, evaluate=evaluate, nn_name=nn_name)
         raise ValueError(
             f"model_type '{settings.get('model_type')}' is not supported for mention training."
         )
@@ -97,8 +98,9 @@ class RelationTrainerFactory:
         match model_type:
             case RelationTrainModelType.BASIC_NEURAL_NETWORK:
                 size = ModelSize.from_string(settings.get("model_size"))
-                evaluate = settings.get("evaluate")
-                return NNRelationTrainer(size=size, evaluate=evaluate)
+                evaluate = settings.get("enable_evaluation").lower() == "true"
+                nn_name = settings.get("name")
+                return NNRelationTrainer(size=size, evaluate=evaluate, nn_name=nn_name)
 
         raise ValueError(
             f"model_type '{settings.get('model_type')}' is not supported for relation training."

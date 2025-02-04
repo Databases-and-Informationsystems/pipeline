@@ -41,21 +41,26 @@ class RelationTrainer(Trainer, ABC):
 
 class NNRelationTrainer(RelationTrainer):
     size: ModelSize
+    nn_name: str
 
     def __init__(
         self,
         size: ModelSize,
         evaluate: bool,
+        nn_name: str,
         name: str = "RelationTrainer",
     ):
         super().__init__(name, evaluate)
         self.size = size
+        self.nn_name = nn_name
 
     def _train(self, schema: Schema, documents: typing.List[Document]) -> str:
-        realtion_nn = RelationBasicNN(size=self.size, documents=documents)
+        realtion_nn = RelationBasicNN(
+            size=self.size, documents=documents, name=self.nn_name
+        )
 
         epoch_loss_list = realtion_nn.start_training(documents=documents)
-        realtion_nn.save_as_file(schema_id=schema.id)
+        realtion_nn.save_as_file()
 
         training_results = TrainingResults(
             epoch_train_loss=epoch_loss_list,

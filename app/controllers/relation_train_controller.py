@@ -49,6 +49,11 @@ class RelationTrainController(Resource):
                 "required": False,
                 "type": "bool",
             },
+            "name": {
+                "description": "Name of the neural network. To get prediction from this you have to use the same name in step api",
+                "required": True,
+                "type": "string",
+            },
         }
     )
     @ns.response(400, "Invalid input")
@@ -69,15 +74,8 @@ class RelationTrainController(Resource):
         ]
 
         schema = TypeAdapter(Schema).validate_json(json.dumps(schema_data))
-        evaluate = request.args.get("enable_evaluation", "false").lower() == "true"
 
-        relation_trainer: RelationTrainer = RelationTrainerFactory.create(
-            settings={
-                "model_size": request.args.get("model_size"),
-                "model_type": request.args.get("model_type"),
-                "evaluate": evaluate,
-            }
-        )
+        relation_trainer: RelationTrainer = RelationTrainerFactory.create(request.args)
 
         training_results = relation_trainer.train(documents=documents, schema=schema)
 
