@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 import itertools
 
-import basic_nn_utils
+from app.train.basic_nns.basic_nn_utils import get_entity_by_mention, cluster_pairs
 from app.model.document import Document, CEntity, Mention, CMention
 from app.model.schema import Schema
 from app.model.settings import ModelSize
