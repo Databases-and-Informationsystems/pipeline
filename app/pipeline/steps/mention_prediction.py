@@ -37,17 +37,17 @@ class MentionStep(PipelineStep, ABC):
 
 class LLMMentionStep(MentionStep):
     temperature: Temperature
-    model: GptModel
+    gpt_model: GptModel
 
     def __init__(
         self,
         temperature: Temperature,
-        model: GptModel,
+        gpt_model: GptModel,
         name: str = "MentionPrediction",
     ):
         super().__init__(name)
         self.temperature = temperature
-        self.model = model
+        self.gpt_model = gpt_model
 
     def _train(self):
         pass
@@ -57,7 +57,7 @@ class LLMMentionStep(MentionStep):
     ) -> typing.List[CMention]:
 
         llm_mention_detection = LLMMentionPrediction(
-            model=self.model, temperature=self.temperature
+            model=self.gpt_model, temperature=self.temperature
         )
 
         prediction_json = llm_mention_detection.run(
