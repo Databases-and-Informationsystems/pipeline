@@ -36,7 +36,7 @@ class MentionBasicNN(BasicNN):
 
     def _get_input_output_size(self):
         input_size = 4 + 2 * len(self.token_postag_list) + 2 * self.word2vec.vector_size
-        output_size = 3 + 2 * len(self.mention_tag_list)
+        output_size = 2 + len(self.mention_tag_list)
         return input_size, output_size
 
     def _get_mention_by_token(self, document: Document, token_index: int):
@@ -82,10 +82,6 @@ class MentionBasicNN(BasicNN):
             single_y_output.append(1)
         else:
             single_y_output.append(0)
-        if mention1:
-            single_y_output.append(1)
-        else:
-            single_y_output.append(0)
 
         if mention0 and mention1 and mention0.id == mention1.id:
             single_y_output.append(1)
@@ -93,7 +89,6 @@ class MentionBasicNN(BasicNN):
             single_y_output.append(0)
 
         single_y_output += self._get_mention_tag_nn_input_list(mention0)
-        single_y_output += self._get_mention_tag_nn_input_list(mention1)
 
         return single_y_output
 
@@ -146,34 +141,25 @@ class MentionBasicNN(BasicNN):
                     )
                     mention.startTokenDocumentIndex = i
 
-            if mention is not None and prediction[0, 2] < threshold:
+            if mention is not None and prediction[0, 1] < threshold:
                 mention.endTokenDocumentIndex = i
                 mentions.append(mention)
                 mention = None
 
-        output_neuron_const = 3
+        output_neuron_const = 2
 
         for mention in mentions:
-            type_prediction = torch.zeros(
-                int((predictions[0].shape[1] - output_neuron_const) / 2)
-            )
+            type_prediction = torch.zeros(len(self.mention_tag_list))
 
             for i in range(
-                mention.startTokenDocumentIndex - 1, mention.endTokenDocumentIndex + 1
+                mention.startTokenDocumentIndex, mention.endTokenDocumentIndex
             ):
-                if i < 0 or i > len(prediction):
+                if i < 0 or i > len(predictions):
                     continue
 
                 if i <= mention.endTokenDocumentIndex:
                     type_prediction += predictions[i][0][
                         output_neuron_const : output_neuron_const + len(type_prediction)
-                    ]
-
-                if i >= mention.startTokenDocumentIndex:
-                    type_prediction += predictions[i][0][
-                        output_neuron_const
-                        + len(type_prediction) : output_neuron_const
-                        + 2 * len(type_prediction)
                     ]
 
             max_index = torch.argmax(type_prediction)
@@ -203,7 +189,7 @@ class MentionBasicNN(BasicNN):
                     == true_mention.startTokenDocumentIndex
                     and prediciton_mention.endTokenDocumentIndex
                     == true_mention.endTokenDocumentIndex
-                    and prediciton_mention.type == true_mention.type
+                    # and prediciton_mention.type == true_mention.type
                 ):
                     equal_counter += 1
         return equal_counter * 2 / (len(truth_cmentions) + len(prediction))
