@@ -9,14 +9,27 @@ from . import steps_ns as ns, get_document_id, caching_enabled
 from ..model.document import Mention
 from ..model.schema import Schema
 from ..model.settings import GptModel, Temperature, PredictModelType
-from ..pipeline.factory import RelationStepFactory
-from ..pipeline.steps.relation_prediction import RelationStep
-from ..restx_dtos import relation_step_input, new_relation
+from ..pipeline.factory import RelationStepFactory, get_relation_settings
+from ..pipeline.steps.relation_prediction import RelationStep, RelationModelType
+from ..restx_dtos import relation_step_input, new_relation, model_type_with_settings
 from ..util.file import read_json_from_file, create_file_from_data
 
 
 @ns.route("/relation")
 class RelationStepController(Resource):
+
+    @ns.doc(
+        description="Defines all possible _model_types_ with its possible _settings_ for the relation detection step.",
+    )
+    @ns.marshal_with(model_type_with_settings, as_list=True, code=200)
+    def get(self):
+        return [
+            {
+                "model_type": model_type.value,
+                "settings": get_relation_settings(model_type),
+            }
+            for model_type in RelationModelType
+        ]
 
     @ns.expect(relation_step_input, validate=True)
     @ns.marshal_with(new_relation, as_list=True, code=200)
@@ -25,7 +38,7 @@ class RelationStepController(Resource):
             "model_type": {
                 "description": "Recommendation System that should be used.",
                 "required": True,
-                "enum": [model_type.value for model_type in PredictModelType],
+                "enum": [mt.value for mt in RelationModelType],
             },
             "model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",

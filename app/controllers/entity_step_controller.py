@@ -9,24 +9,36 @@ from . import steps_ns as ns, caching_enabled, get_document_id
 from ..model.document import Mention, CEntity
 from ..model.schema import Schema
 from ..model.settings import GptModel, Temperature, PredictModelType
-from ..pipeline.factory import EntityStepFactory
-from ..pipeline.steps.entity_prediction import EntityStep
-from ..restx_dtos import entity_step_output, entity_step_input
+from ..pipeline.factory import EntityStepFactory, get_entity_settings
+from ..pipeline.steps.entity_prediction import EntityStep, EntityModelType
+from ..restx_dtos import entity_step_output, entity_step_input, model_type_with_settings
 from ..util.file import read_json_from_file, create_file_from_data
 
 
 @ns.route("/entity")
 class EntityStepController(Resource):
 
+    @ns.doc(
+        description="Defines all possible _model_types_ with its possible _settings_ for the entity detection step.",
+    )
+    @ns.marshal_with(model_type_with_settings, as_list=True, code=200)
+    def get(self):
+        return [
+            {
+                "model_type": model_type.value,
+                "settings": get_entity_settings(model_type),
+            }
+            for model_type in EntityModelType
+        ]
+
     @ns.expect(entity_step_input, validate=True)
-    # TODO fix this
-    # @ns.marshal_with(entity_step_output, as_list=True, code=200)
+    @ns.marshal_with(entity_step_output, as_list=True, code=200)
     @ns.doc(
         params={
             "model_type": {
                 "description": "Recommendation System that should be used.",
                 "required": True,
-                "enum": [model_type.value for model_type in PredictModelType],
+                "enum": [model_type.value for model_type in EntityModelType],
             },
             "model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",

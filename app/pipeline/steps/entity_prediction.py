@@ -1,6 +1,7 @@
 import json
 import typing
 from abc import ABC, abstractmethod
+from enum import Enum
 
 from app.model.settings import Temperature
 from app.pipeline.models.llm import GptModel, LLMEntityPrediction
@@ -8,6 +9,10 @@ from app.model.document import Mention, CEntity
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 from app.train.basic_nns.entity_nn import EntityBasicNN
+
+
+class EntityModelType(Enum):
+    LLM = "llm"
 
 
 class EntityStep(PipelineStep, ABC):

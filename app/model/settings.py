@@ -4,6 +4,7 @@ from enum import Enum
 class GptModel(Enum):
     # TODO add other allowed models as enum states
     GPT_4O_MINI = "gpt-4o-mini"
+    GPT_3_5_TURBO_16K = "gpt-3.5-turbo-16k"
 
     @staticmethod
     def get_default():
@@ -13,6 +14,8 @@ class GptModel(Enum):
     def from_string(value: str) -> "GptModel":
         if value == "gpt-4o-mini":
             return GptModel.GPT_4O_MINI
+        if value == "gpt-3.5-turbo-16k":
+            return GptModel.GPT_3_5_TURBO_16K
         else:
             raise ValueError(f"Unknown GPT model: {value}")
 
