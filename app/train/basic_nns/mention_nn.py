@@ -2,7 +2,7 @@ import typing
 
 import torch
 
-import basic_nn_utils
+from app.train.basic_nns.basic_nn_utils import get_min_max_token_indices_by_mention
 from app.model.document import Document, Token, Mention, CMention
 from app.model.settings import ModelSize
 from app.train.basic_nns.basic_nn import BasicNN, BasicNNType
@@ -181,7 +181,7 @@ class MentionBasicNN(BasicNN):
     ):
         truth_cmentions: typing.List[CMention] = []
         for truth_entry in truth.mentions:
-            start, end = basic_nn_utils.get_min_max_token_indices_by_mention(
+            start, end = get_min_max_token_indices_by_mention(
                 truth_entry
             )
 

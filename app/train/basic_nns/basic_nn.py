@@ -11,7 +11,7 @@ import torch.optim as optim
 from abc import ABC, abstractmethod
 from enum import Enum
 
-import basic_nn_utils
+from app.train.basic_nns.basic_nn_utils import get_token_postag_list, get_mention_tag_list, get_relation_tag_list
 from app.model.document import Document, Token, Mention, Relation
 from app.model.schema import Schema
 from app.model.settings import ModelSize
@@ -43,11 +43,11 @@ class BasicNN(nn.Module, ABC):
         self._nn_type = nn_type
         self.size = size
         self.word2vec = Word2VecModel()
-        self.token_postag_list = basic_nn_utils.get_token_postag_list(
+        self.token_postag_list = get_token_postag_list(
             documents=documents
         )
-        self.mention_tag_list = basic_nn_utils.get_mention_tag_list(documents=documents)
-        self.relation_tag_list = basic_nn_utils.get_relation_tag_list(
+        self.mention_tag_list = get_mention_tag_list(documents=documents)
+        self.relation_tag_list = get_relation_tag_list(
             documents=documents
         )
 
