@@ -36,6 +36,7 @@ class BasicNN(nn.Module, ABC):
     mention_tag_list: list[str]
     relation_tag_list: list[str]
     name: str
+    loaded: bool
 
     def __init__(
         self,
@@ -54,9 +55,8 @@ class BasicNN(nn.Module, ABC):
         self.mention_tag_list = get_mention_tag_list(documents=documents)
         self.relation_tag_list = get_relation_tag_list(documents=documents)
 
-        if schema_id is not None:
-            self._load_from_file()
-        else:
+        self.loaded = self._load_from_file()
+        if self.loaded == False:
             self._init_layer()
 
     def forward(self, x):
@@ -189,6 +189,7 @@ class BasicNN(nn.Module, ABC):
     def _load_from_file(self):
         directory = f"basic_nn/{self._nn_type.value}/{self.name}"
         if not os.path.exists(directory):
+            return False
             raise FileNotFoundError(f"Pfad nicht gefunden: {directory}")
 
         file_path_metadata = f"{directory}/metadata.json"
@@ -216,6 +217,7 @@ class BasicNN(nn.Module, ABC):
 
         self.load_state_dict(torch.load(file_path_model))
         print(f"Model successfully loaded from {file_path_model}")
+        return True
 
     def _get_mention_tag_nn_input_list(self, mention: Mention):
         nn_tag_list = []
