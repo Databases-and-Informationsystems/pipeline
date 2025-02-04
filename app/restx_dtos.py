@@ -265,7 +265,8 @@ _Values_ are of type object containing the following keys:
     - if the value is an array, all values of the array are valid (enum like behavior)
     - if the value is an string, the possible type is the value of the string
         - _"string"_ => any string can be an input
-        - _"integer"_ => any integer can be an input
+        - _"number"_ => any number can be an input
+        - _"boolean"_ => "true" or "false" can be an input
 - **default** => the default value for the key. _Null_ if there is no default value      
                         """,
         ),

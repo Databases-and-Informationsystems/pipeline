@@ -8,7 +8,7 @@ from pydantic import TypeAdapter
 from . import steps_ns as ns, caching_enabled, get_document_id
 from ..model.document import Token, CMention
 from ..model.schema import Schema
-from ..model.settings import GptModel, Temperature, PredictModelType
+from ..model.settings import GptModel, Temperature
 from ..pipeline.factory import MentionStepFactory, get_mention_settings
 from ..pipeline.steps.mention_prediction import (
     MentionStep,

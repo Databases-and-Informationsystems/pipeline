@@ -13,6 +13,18 @@ from app.train.basic_nns.relation_nn import RelationBasicNN
 
 class RelationModelType(Enum):
     LLM = "llm"
+    BASIC_NEURAL_NETWORK = "basic_nn"
+
+    @staticmethod
+    def get_default():
+        return RelationModelType.LLM
+
+    @staticmethod
+    def from_string(value: str) -> "RelationModelType":
+        try:
+            return RelationModelType(value)
+        except ValueError:
+            return RelationModelType.get_default()
 
 
 class RelationStep(PipelineStep, ABC):

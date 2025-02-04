@@ -8,23 +8,36 @@ from pydantic import TypeAdapter
 from . import train_nn_ns as ns
 from ..model.document import Document
 from ..model.schema import Schema
-from ..model.settings import ModelSize, TrainModelType
-from ..train.factory import RelationTrainerFactory
-from ..train.trainers.relation_trainer import RelationTrainer
-from ..restx_dtos import train_nn_input, training_results
+from ..model.settings import ModelSize
+from ..train.factory import RelationTrainerFactory, get_relation_train_settings
+from ..train.trainers.relation_trainer import RelationTrainer, RelationTrainModelType
+from ..restx_dtos import train_nn_input, training_results, model_type_with_settings
 
 
 @ns.route("/relation")
 class RelationTrainController(Resource):
+
+    @ns.doc(
+        description="Defines all possible 'train'- _model_types_ with its possible _settings_ for the relation training step.",
+    )
+    @ns.marshal_with(model_type_with_settings, as_list=True, code=200)
+    def get(self):
+        return [
+            {
+                "model_type": model_type.value,
+                "settings": get_relation_train_settings(model_type),
+            }
+            for model_type in RelationTrainModelType
+        ]
 
     @ns.expect(train_nn_input, validate=True)
     @ns.marshal_with(training_results, code=200)
     @ns.doc(
         params={
             "model_type": {
-                "description": f"Model type (default: {TrainModelType.get_default().value})",
+                "description": f"Model type (default: {RelationTrainModelType.get_default().value})",
                 "required": False,
-                "enum": [model_size.value for model_size in TrainModelType],
+                "enum": [model_type.value for model_type in RelationTrainModelType],
             },
             "model_size": {
                 "description": f"Model size (default: {ModelSize.get_default().value})",

@@ -1,16 +1,9 @@
 import typing
 
 import torch
-import torch.nn as nn
-import torch.optim as optim
-import itertools
-
 
 from app.model.document import Document, CEntity, Mention, CRelation
-from app.model.schema import Schema
 from app.model.settings import ModelSize
-from app.util.llm_util import get_prediction, extract_json
-from app.word_embeddings.word2vec import Word2VecModel
 from app.train.basic_nns.basic_nn import BasicNN, BasicNNType
 
 

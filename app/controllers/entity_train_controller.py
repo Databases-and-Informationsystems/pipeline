@@ -8,23 +8,36 @@ from pydantic import TypeAdapter
 from . import train_nn_ns as ns
 from ..model.document import Document
 from ..model.schema import Schema
-from ..model.settings import ModelSize, TrainModelType
-from ..train.factory import EntityTrainerFactory
-from ..train.trainers.entity_trainer import EntityTrainer
-from ..restx_dtos import train_nn_input, training_results
+from ..model.settings import ModelSize
+from ..train.factory import EntityTrainerFactory, get_entity_train_settings
+from ..train.trainers.entity_trainer import EntityTrainer, EntityTrainModelType
+from ..restx_dtos import train_nn_input, training_results, model_type_with_settings
 
 
 @ns.route("/entity")
 class EntityTrainController(Resource):
+
+    @ns.doc(
+        description="Defines all possible 'train'- _model_types_ with its possible _settings_ for the entity training step.",
+    )
+    @ns.marshal_with(model_type_with_settings, as_list=True, code=200)
+    def get(self):
+        return [
+            {
+                "model_type": model_type.value,
+                "settings": get_entity_train_settings(model_type),
+            }
+            for model_type in EntityTrainModelType
+        ]
 
     @ns.expect(train_nn_input, validate=True)
     @ns.marshal_with(training_results, code=200)
     @ns.doc(
         params={
             "model_type": {
-                "description": f"Model type (default: {TrainModelType.get_default().value})",
+                "description": f"Model type (default: {EntityTrainModelType.get_default().value})",
                 "required": False,
-                "enum": [model_size.value for model_size in TrainModelType],
+                "enum": [model_type.value for model_type in EntityTrainModelType],
             },
             "model_size": {
                 "description": f"Model size (default: {ModelSize.get_default().value})",

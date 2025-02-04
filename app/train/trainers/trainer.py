@@ -20,7 +20,7 @@ class Trainer(abc.ABC):
         evaluate: bool,
     ):
         self._trainer_step_type = trainer_step_type
-        self._name = (name,)
+        self._name = name
         self._evaluate = evaluate
 
     @property

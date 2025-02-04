@@ -13,6 +13,18 @@ from app.train.basic_nns.mention_nn import MentionBasicNN
 
 class MentionModelType(Enum):
     LLM = "llm"
+    BASIC_NEURAL_NETWORK = "basic_nn"
+
+    @staticmethod
+    def get_default():
+        return MentionModelType.LLM
+
+    @staticmethod
+    def from_string(value: str) -> "MentionModelType":
+        try:
+            return MentionModelType(value)
+        except ValueError:
+            return MentionModelType.get_default()
 
 
 class MentionStep(PipelineStep, ABC):
@@ -49,6 +61,8 @@ class LLMMentionStep(MentionStep):
         super().__init__(name)
         self.temperature = temperature
         self.model = model
+
+        print("Temperature: " + str(temperature.value))
 
     def _train(self):
         pass

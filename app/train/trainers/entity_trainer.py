@@ -1,6 +1,6 @@
-import json
 import typing
 from abc import ABC, abstractmethod
+from enum import Enum
 
 from app.model.settings import ModelSize
 from app.model.document import Document
@@ -8,6 +8,21 @@ from app.model.schema import Schema
 from app.model.training import TrainingResults
 from app.train.trainers.trainer import Trainer, TrainerStepType
 from app.train.basic_nns.entity_nn import EntityBasicNN
+
+
+class EntityTrainModelType(Enum):
+    BASIC_NEURAL_NETWORK = "basic_nn"
+
+    @staticmethod
+    def get_default() -> "EntityTrainModelType":
+        return EntityTrainModelType.BASIC_NEURAL_NETWORK
+
+    @staticmethod
+    def from_string(value: str) -> "EntityTrainModelType":
+        try:
+            return EntityTrainModelType(value)
+        except ValueError:
+            return EntityTrainModelType.get_default()
 
 
 class EntityTrainer(Trainer, ABC):

@@ -8,7 +8,7 @@ from pydantic import TypeAdapter
 from . import steps_ns as ns, get_document_id, caching_enabled
 from ..model.document import Mention
 from ..model.schema import Schema
-from ..model.settings import GptModel, Temperature, PredictModelType
+from ..model.settings import GptModel, Temperature
 from ..pipeline.factory import RelationStepFactory, get_relation_settings
 from ..pipeline.steps.relation_prediction import RelationStep, RelationModelType
 from ..restx_dtos import relation_step_input, new_relation, model_type_with_settings

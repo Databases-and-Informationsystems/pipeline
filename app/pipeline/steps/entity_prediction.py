@@ -13,6 +13,18 @@ from app.train.basic_nns.entity_nn import EntityBasicNN
 
 class EntityModelType(Enum):
     LLM = "llm"
+    BASIC_NEURAL_NETWORK = "basic_nn"
+
+    @staticmethod
+    def get_default():
+        return EntityModelType.LLM
+
+    @staticmethod
+    def from_string(value: str) -> "EntityModelType":
+        try:
+            return EntityModelType(value)
+        except ValueError:
+            return EntityModelType.get_default()
 
 
 class EntityStep(PipelineStep, ABC):

@@ -8,7 +8,7 @@ from pydantic import TypeAdapter
 from . import steps_ns as ns, caching_enabled, get_document_id
 from ..model.document import Mention, CEntity
 from ..model.schema import Schema
-from ..model.settings import GptModel, Temperature, PredictModelType
+from ..model.settings import GptModel, Temperature
 from ..pipeline.factory import EntityStepFactory, get_entity_settings
 from ..pipeline.steps.entity_prediction import EntityStep, EntityModelType
 from ..restx_dtos import entity_step_output, entity_step_input, model_type_with_settings
