@@ -18,7 +18,7 @@ allowed_types="build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|wip"
 commit_msg_file=$1
 commit_msg=$(head -n 1 "$commit_msg_file")
 
-if ! [[ $commit_msg =~ ^($allowed_types): ]]; then
+if ! [[ $commit_msg =~ ^($allowed_types): || $commit_msg =~ ^(Merge|Rebase) ]]; then
   echo "Error: Commit message must start with <type>: where <type> is one of:"
   echo "  build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test, wip"
   echo "Example: feat: add new login feature"
