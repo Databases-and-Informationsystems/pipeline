@@ -59,6 +59,9 @@ class NNRelationTrainer(RelationTrainer):
             size=self.size, documents=documents, name=self.nn_name
         )
 
+        if realtion_nn.loaded:
+            raise FileNotFoundError(f"Modell bereits vorhanden: {realtion_nn.name}")
+
         epoch_loss_list = realtion_nn.start_training(documents=documents)
         realtion_nn.save_as_file()
 

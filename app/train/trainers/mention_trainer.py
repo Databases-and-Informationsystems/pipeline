@@ -59,6 +59,9 @@ class NNMentionTrainer(MentionTrainer):
             size=self.size, documents=documents, name=self.nn_name
         )
 
+        if mention_nn.loaded:
+            raise FileNotFoundError(f"Modell bereits vorhanden: {mention_nn.name}")
+
         epoch_loss_list = mention_nn.start_training(documents=documents)
         mention_nn.save_as_file()
 

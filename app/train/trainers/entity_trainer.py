@@ -59,6 +59,9 @@ class NNEntityTrainer(EntityTrainer):
             size=self.size, documents=documents, name=self.nn_name
         )
 
+        if entity_nn.loaded:
+            raise FileNotFoundError(f"Modell bereits vorhanden: {entity_nn.name}")
+
         epoch_loss_list = entity_nn.start_training(documents=documents)
         entity_nn.save_as_file()
 
