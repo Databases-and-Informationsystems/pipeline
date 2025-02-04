@@ -11,7 +11,11 @@ import torch.optim as optim
 from abc import ABC, abstractmethod
 from enum import Enum
 
-from app.train.basic_nns.basic_nn_utils import get_token_postag_list, get_mention_tag_list, get_relation_tag_list
+from app.train.basic_nns.basic_nn_utils import (
+    get_token_postag_list,
+    get_mention_tag_list,
+    get_relation_tag_list,
+)
 from app.model.document import Document, Token, Mention, Relation
 from app.model.schema import Schema
 from app.model.settings import ModelSize
@@ -31,10 +35,12 @@ class BasicNN(nn.Module, ABC):
     token_postag_list: list[str]
     mention_tag_list: list[str]
     relation_tag_list: list[str]
+    name: str
 
     def __init__(
         self,
         nn_type: BasicNNType,
+        name: str,
         size: ModelSize = ModelSize.MEDIUM,
         documents: typing.List[Document] = [],
         schema_id: typing.Optional[str] = None,
@@ -42,17 +48,14 @@ class BasicNN(nn.Module, ABC):
         super(BasicNN, self).__init__()
         self._nn_type = nn_type
         self.size = size
+        self.name = name
         self.word2vec = Word2VecModel()
-        self.token_postag_list = get_token_postag_list(
-            documents=documents
-        )
+        self.token_postag_list = get_token_postag_list(documents=documents)
         self.mention_tag_list = get_mention_tag_list(documents=documents)
-        self.relation_tag_list = get_relation_tag_list(
-            documents=documents
-        )
+        self.relation_tag_list = get_relation_tag_list(documents=documents)
 
         if schema_id is not None:
-            self._load_from_file(schema_id)
+            self._load_from_file()
         else:
             self._init_layer()
 
@@ -154,8 +157,8 @@ class BasicNN(nn.Module, ABC):
         else:
             raise ValueError(f"ModelSize '{self.size}' is not supported.")
 
-    def save_as_file(self, schema_id):
-        directory = f"basic_nn/{self._nn_type.value}/{schema_id}"
+    def save_as_file(self):
+        directory = f"basic_nn/{self._nn_type.value}/{self.name}"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -183,8 +186,8 @@ class BasicNN(nn.Module, ABC):
         print(f"modell saved in: {file_path_nn}")
         print(f"metadata saved in: {file_path_metadata}")
 
-    def _load_from_file(self, schema_id: str):
-        directory = f"basic_nn/{self._nn_type.value}/{schema_id}"
+    def _load_from_file(self):
+        directory = f"basic_nn/{self._nn_type.value}/{self.name}"
         if not os.path.exists(directory):
             raise FileNotFoundError(f"Pfad nicht gefunden: {directory}")
 

@@ -1,10 +1,12 @@
 import typing
 
 import torch
+import numpy as np
 
 from app.model.document import Document, CEntity, Mention, CRelation
 from app.model.settings import ModelSize
 from app.train.basic_nns.basic_nn import BasicNN, BasicNNType
+from app.train.basic_nns.basic_nn_utils import get_relation_by_mentions
 
 
 class RelationBasicNN(BasicNN):
@@ -57,14 +59,14 @@ class RelationBasicNN(BasicNN):
         wordvec0 = self.word2vec.get_vector_for_multiple_words(haed_str.split(" "))
         wordvec1 = self.word2vec.get_vector_for_multiple_words(tail_str.split(" "))
 
-        if wordvec0 is None:
+        if wordvec0 is None or wordvec0 is np.nan:
             for i in range(self.word2vec.vector_size):
                 single_X_input.append(0)
         else:
             for i in range(self.word2vec.vector_size):
                 single_X_input.append(wordvec0[i])
 
-        if wordvec1 is None:
+        if wordvec1 is None or wordvec1 is np.nan:
             for i in range(self.word2vec.vector_size):
                 single_X_input.append(0)
         else:
@@ -78,7 +80,7 @@ class RelationBasicNN(BasicNN):
     ):
         single_y_output = []
 
-        relation = basic_nn_utils.get_relation_by_mentions(
+        relation = get_relation_by_mentions(
             document=document,
             head_mention_index=head_mention.id,
             tail_mention_index=tail_mention.id,

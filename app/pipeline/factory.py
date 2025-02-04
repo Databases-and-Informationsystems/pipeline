@@ -99,7 +99,7 @@ class EntityStepFactory:
                 )
             case EntityModelType.BASIC_NEURAL_NETWORK:
                 entity_basic_nn: EntityBasicNN = EntityBasicNN(
-                    schema_id=settings.get("schema_id")
+                    name=settings.get("name")
                 )
                 return NNEntityStep(model=entity_basic_nn)
         raise ValueError(f"model_type '{settings.get('model_type')}' is not supported.")

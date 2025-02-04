@@ -50,6 +50,11 @@ class EntityStepController(Resource):
                 "required": False,
                 "enum": [temperature.value for temperature in Temperature],
             },
+            "name": {
+                "description": "Name of the neural network. You need a trained neural network with this name",
+                "required": True,
+                "type": "string",
+            },
         }
     )
     @ns.response(400, "Invalid input")
@@ -72,13 +77,7 @@ class EntityStepController(Resource):
         if request.args.get("model_type") is None:
             raise ValueError("'model_type' parameter is required")
 
-        entity_step: EntityStep = EntityStepFactory.create(
-            settings={
-                "model_type": request.args.get("model_type"),
-                "model": request.args.get("model"),
-                "temperature": request.args.get("temperature"),
-            },
-        )
+        entity_step: EntityStep = EntityStepFactory.create(request.args)
 
         document_id = get_document_id(data)
 

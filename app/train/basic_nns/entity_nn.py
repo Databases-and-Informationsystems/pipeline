@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import itertools
+import numpy as np
 
 from app.train.basic_nns.basic_nn_utils import get_entity_by_mention, cluster_pairs
 from app.model.document import Document, CEntity, Mention, CMention
@@ -17,6 +18,7 @@ from app.train.basic_nns.basic_nn import BasicNN, BasicNNType
 class EntityBasicNN(BasicNN):
     def __init__(
         self,
+        name: str,
         size: ModelSize = ModelSize.MEDIUM,
         documents: typing.List[Document] = [],
         schema_id: typing.Optional[str] = None,
@@ -24,6 +26,7 @@ class EntityBasicNN(BasicNN):
         super().__init__(
             nn_type=BasicNNType.ENTITY_NN,
             size=size,
+            name=name,
             documents=documents,
             schema_id=schema_id,
         )
@@ -74,22 +77,20 @@ class EntityBasicNN(BasicNN):
         index_distance = mention0.id - mention1.id
         single_X_input.append(abs(index_distance))
 
-        wordvec0 = self.word2vec.get_vector_for_multiple_words(str0.split(" "))
-        wordvec1 = self.word2vec.get_vector_for_multiple_words(str1.split(" "))
+        wordvec0 = self.word2vec.get_vector_for_multiple_words(str0.split())
+        wordvec1 = self.word2vec.get_vector_for_multiple_words(str1.split())
 
-        if wordvec0 is None:
-            for i in range(self.word2vec.vector_size):
-                single_X_input.append(0)
-        else:
-            for i in range(self.word2vec.vector_size):
-                single_X_input.append(wordvec0[i])
+        vector_size = Word2VecModel._model.vector_size
 
-        if wordvec1 is None:
-            for i in range(self.word2vec.vector_size):
-                single_X_input.append(0)
+        if wordvec0 is None or np.isnan(wordvec0).all():
+            single_X_input.extend([0] * vector_size)
         else:
-            for i in range(self.word2vec.vector_size):
-                single_X_input.append(wordvec1[i])
+            single_X_input.extend(wordvec0)
+
+        if wordvec1 is None or np.isnan(wordvec1).all():
+            single_X_input.extend([0] * vector_size)
+        else:
+            single_X_input.extend(wordvec1)
 
         return single_X_input
 
@@ -106,10 +107,10 @@ class EntityBasicNN(BasicNN):
                     single_X_input = self._get_single_input(mention0, mention1)
                     X.append(single_X_input)
 
-                    entity0 = basic_nn_utils.get_entity_by_mention(
+                    entity0 = get_entity_by_mention(
                         document=document, mention_index=mention0.id
                     )
-                    entity1 = basic_nn_utils.get_entity_by_mention(
+                    entity1 = get_entity_by_mention(
                         document=document, mention_index=mention0.id
                     )
 
@@ -145,7 +146,7 @@ class EntityBasicNN(BasicNN):
                 mentionId1 = prediction[0][1]
                 pairs.append([mentionId0, mentionId1])
 
-        cluster = basic_nn_utils.cluster_pairs(pairs)
+        cluster = cluster_pairs(pairs)
         entitys: typing.List[CEntity] = []
         for mention_ids in cluster:
             pred_mentions: typing.List[Mention] = []

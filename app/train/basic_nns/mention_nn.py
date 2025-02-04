@@ -1,6 +1,7 @@
 import typing
 
 import torch
+import numpy as np
 
 from app.train.basic_nns.basic_nn_utils import get_min_max_token_indices_by_mention
 from app.model.document import Document, Token, Mention, CMention
@@ -54,14 +55,14 @@ class MentionBasicNN(BasicNN):
         wordvec0 = self.word2vec.get_vector(token0.text)
         wordvec1 = self.word2vec.get_vector(token1.text)
 
-        if wordvec0 is None:
+        if wordvec0 is None or wordvec0 is np.nan:
             for i in range(self.word2vec.vector_size):
                 single_X_input.append(0)
         else:
             for i in range(self.word2vec.vector_size):
                 single_X_input.append(wordvec0[i])
 
-        if wordvec1 is None:
+        if wordvec1 is None or wordvec1 is np.nan:
             for i in range(self.word2vec.vector_size):
                 single_X_input.append(0)
         else:
@@ -181,9 +182,7 @@ class MentionBasicNN(BasicNN):
     ):
         truth_cmentions: typing.List[CMention] = []
         for truth_entry in truth.mentions:
-            start, end = get_min_max_token_indices_by_mention(
-                truth_entry
-            )
+            start, end = get_min_max_token_indices_by_mention(truth_entry)
 
             cmention = CMention(
                 endTokenDocumentIndex=start,

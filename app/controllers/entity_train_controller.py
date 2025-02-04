@@ -49,6 +49,11 @@ class EntityTrainController(Resource):
                 "required": False,
                 "type": "bool",
             },
+            "name": {
+                "description": "Name of the neural network. To get prediction from this you have to use the same name in step api",
+                "required": True,
+                "type": "string",
+            },
         }
     )
     @ns.response(400, "Invalid input")
@@ -68,15 +73,8 @@ class EntityTrainController(Resource):
         ]
 
         schema = TypeAdapter(Schema).validate_json(json.dumps(schema_data))
-        evaluate = request.args.get("enable_evaluation", "false").lower() == "true"
 
-        entity_trainer: EntityTrainer = EntityTrainerFactory.create(
-            settings={
-                "model_size": request.args.get("model_size"),
-                "model_type": request.args.get("model_type"),
-                "evaluate": evaluate,
-            }
-        )
+        entity_trainer: EntityTrainer = EntityTrainerFactory.create(request.args)
 
         training_results = entity_trainer.train(documents=documents, schema=schema)
 

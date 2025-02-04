@@ -41,21 +41,26 @@ class EntityTrainer(Trainer, ABC):
 
 class NNEntityTrainer(EntityTrainer):
     size: ModelSize
+    nn_name: str
 
     def __init__(
         self,
         size: ModelSize,
         evaluate: bool,
+        nn_name: str,
         name: str = "EntityTrainer",
     ):
         super().__init__(name, evaluate)
         self.size = size
+        self.nn_name = nn_name
 
     def _train(self, schema: Schema, documents: typing.List[Document]) -> str:
-        entity_nn = EntityBasicNN(size=self.size, documents=documents)
+        entity_nn = EntityBasicNN(
+            size=self.size, documents=documents, name=self.nn_name
+        )
 
         epoch_loss_list = entity_nn.start_training(documents=documents)
-        entity_nn.save_as_file(schema_id=schema.id)
+        entity_nn.save_as_file()
 
         training_results = TrainingResults(
             epoch_train_loss=epoch_loss_list,

@@ -61,8 +61,9 @@ class EntityTrainerFactory:
         match model_type:
             case EntityTrainModelType.BASIC_NEURAL_NETWORK:
                 size = ModelSize.from_string(settings.get("model_size"))
-                evaluate = settings.get("evaluate")
-                return NNEntityTrainer(size=size, evaluate=evaluate)
+                evaluate = settings.get("enable_evaluation").lower() == "true"
+                nn_name = settings.get("name")
+                return NNEntityTrainer(size=size, evaluate=evaluate, nn_name=nn_name)
 
         raise ValueError(
             f"model_type '{settings.get('model_type')}' is not supported for entity training."

@@ -38,12 +38,11 @@ class Word2VecModel:
             return None
 
     def get_vector_for_multiple_words(self, words: typing.List[str]):
-        word_vectors = []
+        word_vectors = [
+            self.get_vector(word) for word in words if self.get_vector(word) is not None
+        ]
 
-        for word in words:
-            vector = self.get_vector(word)
-            if vector is None:
-                continue
-            word_vectors.append(vector)
+        if not word_vectors:
+            return None
 
         return np.mean(word_vectors, axis=0)
