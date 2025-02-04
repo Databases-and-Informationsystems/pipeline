@@ -1,6 +1,7 @@
 import json
 import typing
 from abc import ABC, abstractmethod
+from enum import Enum
 
 from app.model.settings import Temperature
 from app.pipeline.models.llm import GptModel, LLMMentionPrediction
@@ -10,8 +11,23 @@ from app.pipeline.step import PipelineStep, PipelineStepType
 from app.train.basic_nns.mention_nn import MentionBasicNN
 
 
+class MentionModelType(Enum):
+    LLM = "llm"
+    BASIC_NEURAL_NETWORK = "basic_nn"
+
+    @staticmethod
+    def get_default():
+        return MentionModelType.LLM
+
+    @staticmethod
+    def from_string(value: str) -> "MentionModelType":
+        try:
+            return MentionModelType(value)
+        except ValueError:
+            return MentionModelType.get_default()
+
+
 class MentionStep(PipelineStep, ABC):
-    model_types = ["llm"]
 
     def __init__(
         self,
@@ -45,6 +61,8 @@ class LLMMentionStep(MentionStep):
         super().__init__(name)
         self.temperature = temperature
         self.model = model
+
+        print("Temperature: " + str(temperature.value))
 
     def _train(self):
         pass

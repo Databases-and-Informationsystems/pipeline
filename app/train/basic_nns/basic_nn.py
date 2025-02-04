@@ -15,13 +15,12 @@ import basic_nn_utils
 from app.model.document import Document, Token, Mention, Relation
 from app.model.schema import Schema
 from app.model.settings import ModelSize
-from app.util.llm_util import get_prediction, extract_json
 from app.word_embeddings.word2vec import Word2VecModel
 
 
 class BasicNNType(Enum):
     MENTION_NN = "mentions"
-    ENTITY_NN = "entitys"
+    ENTITY_NN = "entities"
     RELATION_NN = "relations"
 
 

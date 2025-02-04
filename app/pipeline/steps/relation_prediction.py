@@ -1,6 +1,7 @@
 import json
 import typing
 from abc import ABC, abstractmethod
+from enum import Enum
 
 from app.model.settings import Temperature
 from app.pipeline.models.llm import GptModel, LLMRelationPrediction
@@ -8,6 +9,22 @@ from app.model.document import Mention, CEntity, CRelation
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 from app.train.basic_nns.relation_nn import RelationBasicNN
+
+
+class RelationModelType(Enum):
+    LLM = "llm"
+    BASIC_NEURAL_NETWORK = "basic_nn"
+
+    @staticmethod
+    def get_default():
+        return RelationModelType.LLM
+
+    @staticmethod
+    def from_string(value: str) -> "RelationModelType":
+        try:
+            return RelationModelType(value)
+        except ValueError:
+            return RelationModelType.get_default()
 
 
 class RelationStep(PipelineStep, ABC):

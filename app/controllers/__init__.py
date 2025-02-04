@@ -28,7 +28,17 @@ def get_document_id(data: any) -> typing.Optional[str]:
 
 
 # /steps/...
-steps_ns: Namespace = Namespace("steps", description="Execute single pipeline steps")
+steps_ns: Namespace = Namespace(
+    "Step Routes",
+    description="""
+Execute single pipeline steps of the possible _tokenize_, _mention_, _entity_ and _relation_.
+Each step contains 2 Endpoints (**GET** & **POST**):
+- **GET**: fetch all possible _model_types_ with its possible settings. The description of the _settings_ can be found in the model definition of the response
+- **POST**: executes the pipeline step. Each pipeline steps accepts the _model_types_ and its _settings_ that are defined in the GET request of the step
+
+_(The tokenize step lacks a get request as no settings are available)_
+""",
+)
 from .tokenize_step_controller import TokenizeStepController
 from .mention_step_controller import MentionStepController
 from .entity_step_controller import EntityStepController
@@ -37,9 +47,16 @@ from .relation_step_controller import RelationStepController
 
 api.add_namespace(steps_ns, path="/steps")
 
-# /train_nn/...
+# /train/...
 train_nn_ns: Namespace = Namespace(
-    "train", description="Train own neural networks for certain schemas"
+    "Training Routes",
+    description="""
+Train own models for certain schemas
+
+Each step contains 2 Endpoints (**GET** & **POST**):
+- **GET**: fetch all possible _model_types_ with its possible settings. The description of the _settings_ can be found in the model definition of the response
+- **POST**: executes the pipeline training. Each pipeline training accepts the _model_types_ and its _settings_ that are defined in the GET request of the step
+    """,
 )
 
 from .entity_train_controller import EntityTrainController
