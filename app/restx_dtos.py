@@ -25,6 +25,51 @@ mention_input = api.model(
     },
 )
 
+entity_input = api.model(
+    "Entity",
+    {
+        "id": fields.Integer(required=True),
+        "tag": fields.String(required=True),
+        "mentions": fields.List(fields.Nested(mention_input, required=True)),
+    },
+)
+
+relation_input = api.model(
+    "Relation",
+    {
+        "id": fields.Integer(required=True),
+        "tag": fields.String(required=True),
+        "head_mention": fields.Nested(mention_input, required=True),
+        "tail_mention": fields.Nested(mention_input, required=True),
+    },
+)
+
+### --------------------------------------------------------------------------------------------------------------------
+# train neural network sub inputs
+### --------------------------------------------------------------------------------------------------------------------
+
+mention_document = api.model(
+    "MentionDocument",
+    {
+        "id": fields.Integer(required=False),
+        "content": fields.String(required=True),
+        "tokens": fields.List(fields.Nested(token_input)),
+        "mentions": fields.List(fields.Nested(mention_input)),
+    },
+)
+
+document = api.model(
+    "MentionDocument",
+    {
+        "id": fields.Integer(required=False),
+        "content": fields.String(required=True),
+        "tokens": fields.List(fields.Nested(token_input)),
+        "mentions": fields.List(fields.Nested(mention_input)),
+        "entitys": fields.List(fields.Nested(entity_input)),
+        "relations": fields.List(fields.Nested(relation_input)),
+    },
+)
+
 ### --------------------------------------------------------------------------------------------------------------------
 # Schema
 ### --------------------------------------------------------------------------------------------------------------------
@@ -175,6 +220,31 @@ relation_step_input = api.model(
         "mentions": fields.List(fields.Nested(mention_input), required=True),
     },
 )
+### --------------------------------------------------------------------------------------------------------------------
+# Train neural network
+### --------------------------------------------------------------------------------------------------------------------
+
+train_nn_input = api.model(
+    "TrainNNInput",
+    {
+        "schema": fields.Nested(schema_input_for_relations, required=True),
+        "documents": fields.List(fields.Nested(document)),
+    },
+)
+
+### --------------------------------------------------------------------------------------------------------------------
+# Training Results
+
+training_results = api.model(
+    "TrainingResults",
+    {
+        "epoch_train_loss": fields.List(fields.Float(required=True)),
+        "number_of_epochs": fields.Integer(required=True),
+        "cross_validation_score": fields.Float,
+    },
+)
+
+### --------------------------------------------------------------------------------------------------------------------
 
 
 ### --------------------------------------------------------------------------------------------------------------------
@@ -196,6 +266,7 @@ _Values_ are of type object containing the following keys:
     - if the value is an string, the possible type is the value of the string
         - _"string"_ => any string can be an input
         - _"number"_ => any number can be an input
+        - _"boolean"_ => "true" or "false" can be an input
 - **default** => the default value for the key. _Null_ if there is no default value      
                         """,
         ),

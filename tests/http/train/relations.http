@@ -1,0 +1,8 @@
+### Example request to create relation basic nn
+POST http://localhost/pipeline/train/relation?
+   model_type=basic_nn
+   &model_size=medium
+   &enable_evaluation=True
+Content-Type: application/json
+
+< ./train_nn_test_input.json

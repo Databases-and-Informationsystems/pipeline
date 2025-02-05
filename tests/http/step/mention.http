@@ -1,0 +1,13 @@
+### Request to create mentions with open ai llm
+POST http://localhost/pipeline/steps/mention?
+   model_type=llm
+Content-Type: application/json
+
+< ./test-inputs/mention-input-1.json
+
+### Request to create mentions with custom basic_nn
+POST http://localhost/pipeline/steps/mention?
+   model_type=basic_nn
+Content-Type: application/json
+
+< ./test-inputs/mention-input-1.json

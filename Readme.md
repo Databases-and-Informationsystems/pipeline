@@ -37,3 +37,7 @@ Same setup as [in the api project](https://github.com/Databases-and-Informations
 
 ### Code Formatting
 [See api project](https://github.com/Databases-and-Informationsystems/api?tab=readme-ov-file#code-formatting)
+
+### Debug Microservice in VSCode
+To start the microservice in the debugger, you need to be inside the dev container, which is attached to the running container. Simply start `run.py`.
+The port from run.py is already used by the running container so you have to set another port (e.g., 8081). 

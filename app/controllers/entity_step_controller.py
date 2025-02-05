@@ -12,7 +12,7 @@ from ..model.settings import GptModel, Temperature
 from ..pipeline.factory import EntityStepFactory, get_entity_settings
 from ..pipeline.steps.entity_prediction import EntityStep, EntityModelType
 from ..restx_dtos import entity_step_output, entity_step_input, model_type_with_settings
-from ..util.file import read_json_from_file, create_file_from_data
+from ..util.file import read_json_from_file, create_caching_file_from_data
 
 
 @ns.route("/entity")
@@ -38,7 +38,7 @@ class EntityStepController(Resource):
             "model_type": {
                 "description": "Recommendation System that should be used.",
                 "required": True,
-                "enum": [mt.value for mt in EntityModelType],
+                "enum": [model_type.value for model_type in EntityModelType],
             },
             "gpt-model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",
@@ -49,6 +49,11 @@ class EntityStepController(Resource):
                 "description": f"Temperature of the Open AI model (default: {Temperature.get_default().value})",
                 "required": False,
                 "enum": [temperature.value for temperature in Temperature],
+            },
+            "name": {
+                "description": "Name of the neural network. You need a trained neural network with this name",
+                "required": False,
+                "type": "string",
             },
         }
     )
@@ -72,13 +77,7 @@ class EntityStepController(Resource):
         if request.args.get("model_type") is None:
             raise ValueError("'model_type' parameter is required")
 
-        entity_step: EntityStep = EntityStepFactory.create(
-            settings={
-                "model_type": request.args.get("model_type"),
-                "gpt-model": request.args.get("gpt-model"),
-                "temperature": request.args.get("temperature"),
-            },
-        )
+        entity_step: EntityStep = EntityStepFactory.create(request.args)
 
         document_id = get_document_id(data)
 
@@ -96,6 +95,8 @@ class EntityStepController(Resource):
         res = [e.to_dict() for e in entities]
 
         if caching_enabled():
-            create_file_from_data(res, entity_step.pipeline_step_type, document_id)
+            create_caching_file_from_data(
+                res, entity_step.pipeline_step_type, document_id
+            )
 
         return res

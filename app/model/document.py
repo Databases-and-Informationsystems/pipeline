@@ -27,10 +27,6 @@ class Token(CToken):
         )
 
 
-class Entity(BaseModel):
-    id: int
-
-
 class CMention(BaseModel):
     type: str
     startTokenDocumentIndex: int
@@ -41,7 +37,6 @@ class Mention(BaseModel):
     id: typing.Optional[int]
     tag: str
     tokens: typing.List[Token]
-    entity: typing.Optional[Entity] = None
 
     def to_dict(self) -> typing.Dict[str, typing.Any]:
         sorted_tokens_with_content = sorted(
@@ -63,6 +58,12 @@ class Mention(BaseModel):
         )
 
 
+class Entity(BaseModel):
+    id: int
+    tag: str
+    mentions: typing.List[Mention]
+
+
 class CEntity(BaseModel):
     mentions: typing.List[Mention]
 
@@ -82,6 +83,22 @@ class Relation(BaseModel):
     tail_mention: Mention
 
 
+class CRelation(BaseModel):
+    head_mention_id: int
+    tail_mention_id: int
+    tag: str
+
+    def to_dict(self) -> typing.Dict[str, typing.Any]:
+        return {
+            "head_mention": self.head_mention_id,
+            "tail_mention": self.tail_mention_id,
+            "tag": self.tag,
+        }
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict())
+
+
 class DocumentState(Enum):
     NEW = 1
     IN_PROGRESS = 2
@@ -94,3 +111,6 @@ class Document(BaseModel):
     content: str
     state: typing.Optional[DocumentState] = None
     tokens: typing.Optional[typing.List[Token]] = None
+    entitys: typing.Optional[typing.List[Entity]] = None
+    relations: typing.Optional[typing.List[Relation]] = None
+    mentions: typing.Optional[typing.List[Mention]] = None

@@ -169,3 +169,5 @@ cython_debug/
 
 # Project specific files / folders
 /uploads
+/word_embedding_models
+/basic_nn

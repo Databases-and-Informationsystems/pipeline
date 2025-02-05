@@ -1,6 +1,0 @@
-### Example request to create mentions
-POST http://localhost/pipeline/steps/mention?
-   model_type=llm
-Content-Type: application/json
-
-< ./test-inputs/mention-input-1.json

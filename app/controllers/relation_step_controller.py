@@ -12,7 +12,7 @@ from ..model.settings import GptModel, Temperature
 from ..pipeline.factory import RelationStepFactory, get_relation_settings
 from ..pipeline.steps.relation_prediction import RelationStep, RelationModelType
 from ..restx_dtos import relation_step_input, new_relation, model_type_with_settings
-from ..util.file import read_json_from_file, create_file_from_data
+from ..util.file import read_json_from_file, create_caching_file_from_data
 
 
 @ns.route("/relation")
@@ -50,6 +50,11 @@ class RelationStepController(Resource):
                 "required": False,
                 "enum": [temperature.value for temperature in Temperature],
             },
+            "name": {
+                "description": "Name of the neural network. You need a trained neural network with this name",
+                "required": False,
+                "type": "string",
+            },
         }
     )
     @ns.response(400, "Invalid input")
@@ -72,13 +77,7 @@ class RelationStepController(Resource):
         if request.args.get("model_type") is None:
             raise ValueError("'model_type' parameter is required")
 
-        relation_pipeline_step: RelationStep = RelationStepFactory.create(
-            settings={
-                "model_type": request.args.get("model_type"),
-                "gpt-model": request.args.get("gpt-model"),
-                "temperature": request.args.get("temperature"),
-            },
-        )
+        relation_pipeline_step: RelationStep = RelationStepFactory.create(request.args)
 
         document_id = get_document_id(data)
 
@@ -95,7 +94,7 @@ class RelationStepController(Resource):
         )
 
         if caching_enabled():
-            create_file_from_data(
+            create_caching_file_from_data(
                 res, relation_pipeline_step.pipeline_step_type, document_id
             )
 

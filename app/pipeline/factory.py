@@ -6,18 +6,24 @@ from app.pipeline.steps.entity_prediction import (
     EntityPrediction,
     EntityStep,
     EntityModelType,
+    NNEntityStep,
 )
 from app.pipeline.steps.relation_prediction import (
     RelationStep,
     RelationPrediction,
     RelationModelType,
+    NNRelationStep,
 )
 from app.pipeline.steps.tokenizer import Tokenizer, TokenizeStep
 from app.pipeline.steps.mention_prediction import (
     LLMMentionStep,
     MentionStep,
     MentionModelType,
+    NNMentionStep,
 )
+from app.train.basic_nns.mention_nn import MentionBasicNN
+from app.train.basic_nns.entity_nn import EntityBasicNN
+from app.train.basic_nns.relation_nn import RelationBasicNN
 
 
 class TokenizeStepFactory:
@@ -31,114 +37,134 @@ class MentionStepFactory:
 
     @staticmethod
     def create(settings: typing.Optional[dict]) -> MentionStep:
-        if settings.get("model_type") == "llm":
-            temperature: Temperature = (
-                Temperature.from_string(settings.get("temperature"))
-                if settings and settings.get("temperature")
-                else Temperature.get_default()
-            )
-            gpt_model: GptModel = (
-                GptModel.from_string(settings.get("gpt-model"))
-                if settings and settings.get("gpt-model")
-                else GptModel.get_default()
-            )
-            return LLMMentionStep(
-                temperature=temperature,
-                gpt_model=gpt_model,
-            )
-        else:
-            raise ValueError(
-                f"model_type '{settings.get('model_type')}' is not supported."
-            )
+        model_type: MentionModelType = MentionModelType.from_string(
+            settings.get("model_type")
+        )
+        match model_type:
+            case MentionModelType.LLM:
+                temperature: Temperature = Temperature.from_string(
+                    settings.get("temperature")
+                )
+                gpt_model: GptModel = GptModel.from_string(settings.get("model"))
+                return LLMMentionStep(
+                    temperature=temperature,
+                    gpt_model=gpt_model,
+                )
+            case MentionModelType.BASIC_NEURAL_NETWORK:
+                mention_basic_nn: MentionBasicNN = MentionBasicNN(
+                    name=settings.get("name")
+                )
+                return NNMentionStep(model=mention_basic_nn)
+
+        raise ValueError(f"model_type '{settings.get('model_type')}' is not supported.")
 
 
 def get_mention_settings(model_type: MentionModelType) -> dict:
-    if model_type == MentionModelType.LLM:
-        return {
-            "temperature": {
-                "values": [t.value for t in Temperature],
-                "default": Temperature.get_default().value,
-            },
-            "gpt-model": {
-                "values": [m.value for m in GptModel],
-                "default": GptModel.get_default().value,
-            },
-        }
+    match model_type:
+        case MentionModelType.LLM:
+            return {
+                "temperature": {
+                    "values": [t.value for t in Temperature],
+                    "default": Temperature.get_default().value,
+                },
+                "gpt-model": {
+                    "values": [m.value for m in GptModel],
+                    "default": GptModel.get_default().value,
+                },
+            }
+        case MentionModelType.BASIC_NEURAL_NETWORK:
+            # basic neural network does not have any settings yet
+            return {}
+    raise ValueError(
+        f"model_type '{model_type}' is not supported for mention settings."
+    )
 
 
 class EntityStepFactory:
 
     @staticmethod
     def create(settings: typing.Optional[dict]) -> EntityStep:
-        if settings.get("model_type") == "llm":
-            temperature: Temperature = (
-                Temperature.from_string(settings.get("temperature"))
-                if settings and settings.get("temperature")
-                else Temperature.get_default()
-            )
-            gpt_model: GptModel = (
-                GptModel.from_string(settings.get("gpt-model"))
-                if settings and settings.get("gpt-model")
-                else GptModel.get_default()
-            )
-            return EntityPrediction(
-                temperature=temperature,
-                gpt_model=gpt_model,
-            )
-        else:
-            raise ValueError(
-                f"model_type '{settings.get('model_type')}' is not supported."
-            )
+        model_type: EntityModelType = EntityModelType.from_string(
+            settings.get("model_type")
+        )
+        match model_type:
+            case EntityModelType.LLM:
+                temperature: Temperature = Temperature.from_string(
+                    settings.get("temperature")
+                )
+                gpt_model: GptModel = GptModel.from_string(settings.get("model"))
+                return EntityPrediction(
+                    temperature=temperature,
+                    gpt_model=gpt_model,
+                )
+            case EntityModelType.BASIC_NEURAL_NETWORK:
+                entity_basic_nn: EntityBasicNN = EntityBasicNN(
+                    name=settings.get("name")
+                )
+                return NNEntityStep(model=entity_basic_nn)
+        raise ValueError(f"model_type '{settings.get('model_type')}' is not supported.")
 
 
 def get_entity_settings(model_type: EntityModelType) -> dict:
-    if model_type == EntityModelType.LLM:
-        return {
-            "temperature": {
-                "values": [t.value for t in Temperature],
-                "default": Temperature.get_default().value,
-            },
-            "gpt-model": {
-                "values": [m.value for m in GptModel],
-                "default": GptModel.get_default().value,
-            },
-        }
+    match model_type:
+        case EntityModelType.LLM:
+            return {
+                "temperature": {
+                    "values": [t.value for t in Temperature],
+                    "default": Temperature.get_default().value,
+                },
+                "gpt-model": {
+                    "values": [m.value for m in GptModel],
+                    "default": GptModel.get_default().value,
+                },
+            }
+        case EntityModelType.BASIC_NEURAL_NETWORK:
+            # basic neural network does not have any settings yet
+            return {}
+    raise ValueError(f"model_type '{model_type}' is not supported for entity settings.")
 
 
 class RelationStepFactory:
 
     @staticmethod
     def create(settings: typing.Optional[dict]) -> RelationStep:
-        if settings.get("model_type") == "llm":
-            temperature: Temperature = (
-                Temperature.from_string(settings.get("temperature"))
-                if settings and settings.get("temperature")
-                else Temperature.get_default()
-            )
-            gpt_model: GptModel = (
-                GptModel.from_string(settings.get("gpt-model"))
-                if settings and settings.get("gpt-model")
-                else GptModel.get_default()
-            )
-            return RelationPrediction(
-                temperature=temperature,
-                gpt_model=gpt_model,
-            )
-        else:
-            raise ValueError(
-                f"model_type '{settings.get('model_type')}' is not supported."
-            )
+        model_type: RelationModelType = RelationModelType.from_string(
+            settings.get("model_type")
+        )
+        match model_type:
+            case RelationModelType.LLM:
+                temperature: Temperature = Temperature.from_string(
+                    settings.get("temperature")
+                )
+                gpt_model: GptModel = GptModel.from_string(settings.get("model"))
+                return RelationPrediction(
+                    temperature=temperature,
+                    gpt_model=gpt_model,
+                )
+            case RelationModelType.BASIC_NEURAL_NETWORK:
+                relation_basic_nn: RelationBasicNN = RelationBasicNN(
+                    name=settings.get("name")
+                )
+                return NNRelationStep(model=relation_basic_nn)
+        raise ValueError(f"model_type '{settings.get('model_type')}' is not supported.")
 
 
 def get_relation_settings(model_type: RelationModelType) -> dict:
-    if model_type == RelationModelType.LLM:
-        return {
-            "temperature": {
-                "values": [t.value for t in Temperature],
-                "default": Temperature.get_default().value,
-            },
-            "gpt-model": {
-                "values": [m.value for m in GptModel],
-                "default": GptModel.get_default().value,
-            },
-        }
+    match model_type:
+        case RelationModelType.LLM:
+            return {
+                "temperature": {
+                    "values": [t.value for t in Temperature],
+                    "default": Temperature.get_default().value,
+                },
+                "gpt-model": {
+                    "values": [m.value for m in GptModel],
+                    "default": GptModel.get_default().value,
+                },
+            }
+        case RelationModelType.BASIC_NEURAL_NETWORK:
+            # basic neural network does not have any settings yet
+            return {}
+    raise ValueError(
+        f"model_type '{model_type}' is not supported for relation settings."
+    )
