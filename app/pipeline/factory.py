@@ -45,10 +45,10 @@ class MentionStepFactory:
                 temperature: Temperature = Temperature.from_string(
                     settings.get("temperature")
                 )
-                model: GptModel = GptModel.from_string(settings.get("model"))
+                gpt_model: GptModel = GptModel.from_string(settings.get("model"))
                 return LLMMentionStep(
                     temperature=temperature,
-                    model=model,
+                    gpt_model=gpt_model,
                 )
             case MentionModelType.BASIC_NEURAL_NETWORK:
                 mention_basic_nn: MentionBasicNN = MentionBasicNN(
@@ -67,7 +67,7 @@ def get_mention_settings(model_type: MentionModelType) -> dict:
                     "values": [t.value for t in Temperature],
                     "default": Temperature.get_default().value,
                 },
-                "model": {
+                "gpt-model": {
                     "values": [m.value for m in GptModel],
                     "default": GptModel.get_default().value,
                 },
@@ -92,10 +92,10 @@ class EntityStepFactory:
                 temperature: Temperature = Temperature.from_string(
                     settings.get("temperature")
                 )
-                model: GptModel = GptModel.from_string(settings.get("model"))
+                gpt_model: GptModel = GptModel.from_string(settings.get("model"))
                 return EntityPrediction(
                     temperature=temperature,
-                    model=model,
+                    gpt_model=gpt_model,
                 )
             case EntityModelType.BASIC_NEURAL_NETWORK:
                 entity_basic_nn: EntityBasicNN = EntityBasicNN(
@@ -113,7 +113,7 @@ def get_entity_settings(model_type: EntityModelType) -> dict:
                     "values": [t.value for t in Temperature],
                     "default": Temperature.get_default().value,
                 },
-                "model": {
+                "gpt-model": {
                     "values": [m.value for m in GptModel],
                     "default": GptModel.get_default().value,
                 },
@@ -136,10 +136,10 @@ class RelationStepFactory:
                 temperature: Temperature = Temperature.from_string(
                     settings.get("temperature")
                 )
-                model: GptModel = GptModel.from_string(settings.get("model"))
+                gpt_model: GptModel = GptModel.from_string(settings.get("model"))
                 return RelationPrediction(
                     temperature=temperature,
-                    model=model,
+                    gpt_model=gpt_model,
                 )
             case RelationModelType.BASIC_NEURAL_NETWORK:
                 relation_basic_nn: RelationBasicNN = RelationBasicNN(
@@ -157,7 +157,7 @@ def get_relation_settings(model_type: RelationModelType) -> dict:
                     "values": [t.value for t in Temperature],
                     "default": Temperature.get_default().value,
                 },
-                "model": {
+                "gpt-model": {
                     "values": [m.value for m in GptModel],
                     "default": GptModel.get_default().value,
                 },

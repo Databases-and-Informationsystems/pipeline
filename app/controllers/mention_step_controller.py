@@ -43,7 +43,7 @@ class MentionStepController(Resource):
                 "required": True,
                 "enum": [modelType.value for modelType in MentionModelType],
             },
-            "model": {
+            "gpt-model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",
                 "required": False,
                 "enum": [model.value for model in GptModel],
@@ -55,7 +55,7 @@ class MentionStepController(Resource):
             },
             "name": {
                 "description": "Name of the neural network. You need a trained neural network with this name",
-                "required": True,
+                "required": False,
                 "type": "string",
             },
         },

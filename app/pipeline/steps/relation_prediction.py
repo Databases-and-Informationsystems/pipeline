@@ -46,17 +46,17 @@ class RelationStep(PipelineStep, ABC):
 
 class RelationPrediction(RelationStep):
     temperature: Temperature
-    model: GptModel
+    gpt_model: GptModel
 
     def __init__(
         self,
         temperature: Temperature,
-        model: GptModel,
+        gpt_model: GptModel,
         name: str = "RelationPrediction",
     ):
         super().__init__(name)
         self.temperature = temperature
-        self.model = model
+        self.gpt_model = gpt_model
 
     def _train(self):
         pass
@@ -66,7 +66,7 @@ class RelationPrediction(RelationStep):
     ) -> typing.List[CEntity]:
 
         llm_entity_detection = LLMRelationPrediction(
-            model=self.model, temperature=self.temperature
+            model=self.gpt_model, temperature=self.temperature
         )
 
         prediction_json = llm_entity_detection.run(

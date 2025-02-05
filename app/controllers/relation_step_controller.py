@@ -40,7 +40,7 @@ class RelationStepController(Resource):
                 "required": True,
                 "enum": [mt.value for mt in RelationModelType],
             },
-            "model": {
+            "gpt-model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",
                 "required": False,
                 "enum": [model.value for model in GptModel],
@@ -52,7 +52,7 @@ class RelationStepController(Resource):
             },
             "name": {
                 "description": "Name of the neural network. You need a trained neural network with this name",
-                "required": True,
+                "required": False,
                 "type": "string",
             },
         }

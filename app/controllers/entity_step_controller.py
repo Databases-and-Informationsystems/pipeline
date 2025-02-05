@@ -40,7 +40,7 @@ class EntityStepController(Resource):
                 "required": True,
                 "enum": [model_type.value for model_type in EntityModelType],
             },
-            "model": {
+            "gpt-model": {
                 "description": f"Open AI model (default: {GptModel.get_default().value})",
                 "required": False,
                 "enum": [model.value for model in GptModel],
@@ -52,7 +52,7 @@ class EntityStepController(Resource):
             },
             "name": {
                 "description": "Name of the neural network. You need a trained neural network with this name",
-                "required": True,
+                "required": False,
                 "type": "string",
             },
         }
