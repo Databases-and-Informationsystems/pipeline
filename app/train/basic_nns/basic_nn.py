@@ -46,7 +46,6 @@ class BasicNN(nn.Module, ABC):
         max_word_for_mention_vector: int = 3,
         size: ModelSize = ModelSize.MEDIUM,
         documents: typing.List[Document] = [],
-        schema_id: typing.Optional[str] = None,
     ):
         super(BasicNN, self).__init__()
         self._nn_type = nn_type
@@ -61,6 +60,10 @@ class BasicNN(nn.Module, ABC):
         self.loaded = self._load_from_file()
         if self.loaded == False:
             self._init_layer()
+
+    @property
+    def name(self) -> str:
+        return self.name
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))

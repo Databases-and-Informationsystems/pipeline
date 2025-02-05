@@ -9,6 +9,7 @@ from app.model.document import Mention, CEntity, CRelation
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 from app.train.basic_nns.relation_nn import RelationBasicNN
+from app.util.logger import logger
 
 
 class RelationModelType(Enum):
@@ -36,6 +37,9 @@ class RelationStep(PipelineStep, ABC):
         super().__init__(name, PipelineStepType.RELATION_PREDICTION)
 
     def run(self, content: str, schema: Schema, mentions: typing.List[Mention]) -> any:
+        logger.info(
+            f"{self.name} with settings: {self._get_settings().__str__()} executed"
+        )
         res = self._run(content, schema, mentions)
         return res
 
@@ -52,14 +56,11 @@ class RelationPrediction(RelationStep):
         self,
         temperature: Temperature,
         gpt_model: GptModel,
-        name: str = "RelationPrediction",
+        name: str = "LLMRelationPrediction",
     ):
         super().__init__(name)
         self.temperature = temperature
         self.gpt_model = gpt_model
-
-    def _train(self):
-        pass
 
     def _run(
         self, content: str, schema: Schema, mentions: typing.List[Mention]
@@ -80,6 +81,12 @@ class RelationPrediction(RelationStep):
 
         return prediction_data
 
+    def _get_settings(self) -> typing.Dict[str, typing.Any]:
+        return {
+            "temperature": self.temperature,
+            "gpt_model": self.gpt_model,
+        }
+
 
 class NNRelationStep(RelationStep):
     model: RelationBasicNN
@@ -87,13 +94,10 @@ class NNRelationStep(RelationStep):
     def __init__(
         self,
         model: RelationBasicNN,
-        name: str = "RelationPrediction",
+        name: str = "NNRelationPrediction",
     ):
         super().__init__(name)
         self.model = model
-
-    def _train(self):
-        pass
 
     def _run(
         self, content: str, schema: Schema, mentions: typing.List[Mention]
@@ -102,3 +106,6 @@ class NNRelationStep(RelationStep):
         c_relations = self.model.predict(mentions=mentions)
 
         return c_relations
+
+    def _get_settings(self) -> typing.Dict[str, typing.Any]:
+        return {"name": self.model.name}

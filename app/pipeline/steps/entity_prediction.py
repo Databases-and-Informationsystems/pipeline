@@ -9,6 +9,7 @@ from app.model.document import Mention, CEntity
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 from app.train.basic_nns.entity_nn import EntityBasicNN
+from app.util.logger import logger
 
 
 class EntityModelType(Enum):
@@ -38,6 +39,9 @@ class EntityStep(PipelineStep, ABC):
     def run(
         self, content: str, schema: Schema, mentions: typing.List[Mention]
     ) -> typing.List[CEntity]:
+        logger.info(
+            f"{self.name} with settings: {self._get_settings().__str__()} executed"
+        )
         res = self._run(content, schema, mentions)
         return res
 
@@ -62,9 +66,6 @@ class EntityPrediction(EntityStep):
         self.temperature = temperature
         self.gpt_model = gpt_model
 
-    def _train(self):
-        pass
-
     def _run(
         self, content: str, schema: Schema, mentions: typing.List[Mention]
     ) -> typing.List[typing.List[int]]:
@@ -87,6 +88,12 @@ class EntityPrediction(EntityStep):
         ]
 
         return entities
+
+    def _get_settings(self) -> typing.Dict[str, typing.Any]:
+        return {
+            "temperature": self.temperature,
+            "gpt_model": self.gpt_model,
+        }
 
 
 def get_mentions(indices: typing.List[int], mentions: typing.List[Mention]) -> CEntity:
@@ -113,12 +120,12 @@ class NNEntityStep(EntityStep):
         super().__init__(name)
         self.model = model
 
-    def _train(self):
-        pass
-
     def _run(
         self, content: str, schema: Schema, mentions: typing.List[Mention]
     ) -> typing.List[typing.List[int]]:
         c_entities = self.model.predict(mentions=mentions)
 
         return c_entities
+
+    def _get_settings(self) -> typing.Dict[str, typing.Any]:
+        return {"name": self.model.name}
