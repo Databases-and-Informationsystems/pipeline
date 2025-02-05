@@ -1,7 +1,7 @@
 import json
 import typing
 
-from flask import request
+from flask import request, Response
 from flask_restx import Resource
 from pydantic import TypeAdapter
 
@@ -103,4 +103,4 @@ class RelationTrainController(Resource):
         Delete trained neural network for relation detection by given model type und model name
         """
         delete_model(request.args, BasicNNType.RELATION_NN)
-        return True
+        return Response(status=204)
