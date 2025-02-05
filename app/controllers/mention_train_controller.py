@@ -1,7 +1,7 @@
 import json
 import typing
 
-from flask import request
+from flask import request, Response
 from flask_restx import Resource
 from pydantic import TypeAdapter
 
@@ -11,6 +11,8 @@ from ..model.schema import Schema
 from ..model.settings import ModelSize
 from ..train.factory import MentionTrainerFactory, get_mention_train_settings
 from ..train.trainers.mention_trainer import MentionTrainer, MentionTrainModelType
+from ..train.delete_service import delete_model
+from ..train.basic_nns.basic_nn import BasicNNType
 from ..restx_dtos import train_nn_input, training_results, model_type_with_settings
 
 
@@ -79,3 +81,25 @@ class MentionTrainController(Resource):
         training_results = mention_trainer.train(documents=documents, schema=schema)
 
         return training_results
+
+    @ns.doc(
+        description="Delete trained neural network for mention detection by given model type und model name.",
+        params={
+            "model_type": {
+                "description": f"Model type (default: {MentionTrainModelType.get_default().value})",
+                "required": False,
+                "enum": [model_type.value for model_type in MentionTrainModelType],
+            },
+            "name": {
+                "description": "Name of the neural network.",
+                "required": True,
+                "type": "string",
+            },
+        },
+    )
+    def delete(self):
+        """
+        Delete trained neural network for mention detection by given model type und model name
+        """
+        delete_model(request.args, BasicNNType.MENTION_NN)
+        return Response(status=204)
