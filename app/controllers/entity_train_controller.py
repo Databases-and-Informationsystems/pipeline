@@ -14,6 +14,7 @@ from ..train.trainers.entity_trainer import EntityTrainer, EntityTrainModelType
 from ..train.delete_service import delete_model
 from ..train.basic_nns.basic_nn import BasicNNType
 from ..restx_dtos import train_nn_input, training_results, model_type_with_settings
+from ..util.logger import logger
 
 
 @ns.route("/entity")
@@ -52,7 +53,7 @@ class EntityTrainController(Resource):
                 "type": "bool",
             },
             "name": {
-                "description": "Name of the neural network. To get prediction from this you have to use the same name in step api",
+                "description": "Name of the model. To get prediction from this you have to use the same name in step api",
                 "required": True,
                 "type": "string",
             },
@@ -62,7 +63,7 @@ class EntityTrainController(Resource):
     @ns.response(500, "Internal server error")
     def post(self):
         """
-        Train neural network for entity detection.
+        Train model for entity detection.
         """
 
         data = request.get_json()
@@ -83,7 +84,7 @@ class EntityTrainController(Resource):
         return training_results
 
     @ns.doc(
-        description="Delete trained neural network for entity detection by given model type und model name.",
+        description="Delete trained model for entity detection by given model type und model name.",
         params={
             "model_type": {
                 "description": f"Model type (default: {EntityTrainModelType.get_default().value})",
@@ -91,7 +92,7 @@ class EntityTrainController(Resource):
                 "enum": [model_type.value for model_type in EntityTrainModelType],
             },
             "name": {
-                "description": "Name of the neural network.",
+                "description": "Name of the model.",
                 "required": True,
                 "type": "string",
             },
@@ -99,7 +100,10 @@ class EntityTrainController(Resource):
     )
     def delete(self):
         """
-        Delete trained neural network for entity detection by given model type und model name
+        Delete trained model for entity detection by given model type und model name
         """
         delete_model(request.args, BasicNNType.ENTITY_NN)
+        logger.info(
+            f"Delete trained model for entity detection. {{'model_type'={request.args.get('model_type')}, 'name'={request.args.get('name')}}}"
+        )
         return Response(status=204)

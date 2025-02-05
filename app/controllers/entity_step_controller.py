@@ -51,7 +51,7 @@ class EntityStepController(Resource):
                 "enum": [temperature.value for temperature in Temperature],
             },
             "name": {
-                "description": "Name of the neural network. You need a trained neural network with this name",
+                "description": "Name of the model. You need a trained model with this name",
                 "required": False,
                 "type": "string",
             },

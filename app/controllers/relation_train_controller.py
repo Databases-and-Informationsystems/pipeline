@@ -14,6 +14,7 @@ from ..train.trainers.relation_trainer import RelationTrainer, RelationTrainMode
 from ..train.delete_service import delete_model
 from ..train.basic_nns.basic_nn import BasicNNType
 from ..restx_dtos import train_nn_input, training_results, model_type_with_settings
+from ..util.logger import logger
 
 
 @ns.route("/relation")
@@ -52,7 +53,7 @@ class RelationTrainController(Resource):
                 "type": "bool",
             },
             "name": {
-                "description": "Name of the neural network. To get prediction from this you have to use the same name in step api",
+                "description": "Name of the model. To get prediction from this you have to use the same name in step api",
                 "required": True,
                 "type": "string",
             },
@@ -62,9 +63,8 @@ class RelationTrainController(Resource):
     @ns.response(500, "Internal server error")
     def post(self):
         """
-        Train neural network for relation detection.
+        Train model for relation detection.
         """
-        print("train relations...")
 
         data = request.get_json()
         documents_data = data.get("documents")
@@ -84,7 +84,7 @@ class RelationTrainController(Resource):
         return training_results
 
     @ns.doc(
-        description="Delete trained neural network for relation detection by given model type und model name.",
+        description="Delete trained model for relation detection by given model type und model name.",
         params={
             "model_type": {
                 "description": f"Model type (default: {RelationTrainModelType.get_default().value})",
@@ -92,7 +92,7 @@ class RelationTrainController(Resource):
                 "enum": [model_type.value for model_type in RelationTrainModelType],
             },
             "name": {
-                "description": "Name of the neural network.",
+                "description": "Name of the model.",
                 "required": True,
                 "type": "string",
             },
@@ -100,7 +100,10 @@ class RelationTrainController(Resource):
     )
     def delete(self):
         """
-        Delete trained neural network for relation detection by given model type und model name
+        Delete trained model for relation detection by given model type und model name
         """
         delete_model(request.args, BasicNNType.RELATION_NN)
+        logger.info(
+            f"Delete trained model for relation detection. {{'model_type'={request.args.get('model_type')}, 'name'={request.args.get('name')}}}"
+        )
         return Response(status=204)

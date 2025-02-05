@@ -56,7 +56,7 @@ Train own models for certain schemas
 Each step contains 3 Endpoints (**GET** & **POST** & **DELETE**):
 - **GET**: fetch all possible _model_types_ with its possible settings. The description of the _settings_ can be found in the model definition of the response
 - **POST**: executes the pipeline training. Each pipeline training accepts the _model_types_ and its _settings_ that are defined in the GET request of the step
-- **DELETE**: deletes trained neural networkby given model type und model name
+- **DELETE**: deletes trained model by given model type und model name
     """,
 )
 
