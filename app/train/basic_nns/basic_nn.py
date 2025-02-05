@@ -158,7 +158,7 @@ class BasicNN(nn.Module, ABC):
             raise ValueError(f"ModelSize '{self.size}' is not supported.")
 
     def save_as_file(self):
-        directory = f"basic_nn/{self._nn_type.value}/{self.name}"
+        directory = f"models/basic_nn/{self._nn_type.value}/{self.name}"
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -187,7 +187,7 @@ class BasicNN(nn.Module, ABC):
         print(f"metadata saved in: {file_path_metadata}")
 
     def _load_from_file(self):
-        directory = f"basic_nn/{self._nn_type.value}/{self.name}"
+        directory = f"models/basic_nn/{self._nn_type.value}/{self.name}"
         if not os.path.exists(directory):
             return False
             raise FileNotFoundError(f"Pfad nicht gefunden: {directory}")

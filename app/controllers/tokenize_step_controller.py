@@ -9,7 +9,7 @@ from app.restx_dtos import tokenize_step_input, tokenize_step_output
 
 from . import steps_ns as ns, get_document_id, caching_enabled
 from ..pipeline.steps.tokenizer import TokenizeStep
-from ..util.file import read_json_from_file, create_file_from_data
+from ..util.file import read_json_from_file, create_caching_file_from_data
 
 
 @ns.route("/tokenize")
@@ -42,6 +42,8 @@ class TokenizeStepController(Resource):
 
         res = [token.model_dump(mode="json") for token in tokens]
         if caching_enabled():
-            create_file_from_data(res, tokenizer.pipeline_step_type, document_id)
+            create_caching_file_from_data(
+                res, tokenizer.pipeline_step_type, document_id
+            )
 
         return res

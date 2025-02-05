@@ -15,7 +15,7 @@ from ..pipeline.steps.mention_prediction import (
     MentionModelType,
 )
 from ..restx_dtos import mention_step_input, new_mention, model_type_with_settings
-from ..util.file import read_json_from_file, create_file_from_data
+from ..util.file import read_json_from_file, create_caching_file_from_data
 
 
 @ns.route("/mention")
@@ -99,7 +99,7 @@ class MentionStepController(Resource):
         res = [mention.model_dump(mode="json") for mention in mentions]
 
         if caching_enabled():
-            create_file_from_data(
+            create_caching_file_from_data(
                 res, mention_pipeline_step.pipeline_step_type, document_id
             )
 

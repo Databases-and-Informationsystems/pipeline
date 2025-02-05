@@ -12,7 +12,7 @@ from ..model.settings import GptModel, Temperature
 from ..pipeline.factory import EntityStepFactory, get_entity_settings
 from ..pipeline.steps.entity_prediction import EntityStep, EntityModelType
 from ..restx_dtos import entity_step_output, entity_step_input, model_type_with_settings
-from ..util.file import read_json_from_file, create_file_from_data
+from ..util.file import read_json_from_file, create_caching_file_from_data
 
 
 @ns.route("/entity")
@@ -95,6 +95,8 @@ class EntityStepController(Resource):
         res = [e.to_dict() for e in entities]
 
         if caching_enabled():
-            create_file_from_data(res, entity_step.pipeline_step_type, document_id)
+            create_caching_file_from_data(
+                res, entity_step.pipeline_step_type, document_id
+            )
 
         return res
