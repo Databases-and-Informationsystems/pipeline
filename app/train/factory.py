@@ -46,9 +46,13 @@ def get_mention_train_settings(model_type: MentionTrainModelType) -> dict:
                     "values": [model_size.value for model_size in ModelSize],
                     "default": ModelSize.get_default().value,
                 },
-                "model": {
+                "enable_evaluation": {
                     "values": "boolean",
                     "default": True,
+                },
+                "name": {
+                    "values": "string",
+                    "default": None,
                 },
             }
     raise ValueError(
@@ -85,9 +89,13 @@ def get_entity_train_settings(model_type: EntityTrainModelType) -> dict:
                     "values": [model_size.value for model_size in ModelSize],
                     "default": ModelSize.get_default().value,
                 },
-                "model": {
+                "enable_evaluation": {
                     "values": "boolean",
                     "default": True,
+                },
+                "name": {
+                    "values": "string",
+                    "default": None,
                 },
             }
     raise ValueError(
@@ -124,9 +132,13 @@ def get_relation_train_settings(model_type: RelationTrainModelType) -> dict:
                     "values": [model_size.value for model_size in ModelSize],
                     "default": ModelSize.get_default().value,
                 },
-                "model": {
+                "enable_evaluation": {
                     "values": "boolean",
                     "default": True,
+                },
+                "name": {
+                    "values": "string",
+                    "default": None,
                 },
             }
     raise ValueError(
