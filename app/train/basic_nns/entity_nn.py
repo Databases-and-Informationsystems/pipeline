@@ -16,17 +16,13 @@ from app.train.basic_nns.basic_nn import BasicNN, BasicNNType
 
 
 class EntityBasicNN(BasicNN):
-    max_word_for_mention_vector: int
-
     def __init__(
         self,
         name: str,
         size: ModelSize = ModelSize.MEDIUM,
         documents: typing.List[Document] = [],
         schema_id: typing.Optional[str] = None,
-        max_word_for_mention_vector=3,
     ):
-        self.max_word_for_mention_vector = max_word_for_mention_vector
         super().__init__(
             nn_type=BasicNNType.ENTITY_NN,
             size=size,

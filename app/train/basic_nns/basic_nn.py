@@ -37,11 +37,13 @@ class BasicNN(nn.Module, ABC):
     relation_tag_list: list[str]
     name: str
     loaded: bool
+    max_word_for_mention_vector: int
 
     def __init__(
         self,
         nn_type: BasicNNType,
         name: str,
+        max_word_for_mention_vector: int = 3,
         size: ModelSize = ModelSize.MEDIUM,
         documents: typing.List[Document] = [],
         schema_id: typing.Optional[str] = None,
@@ -50,6 +52,7 @@ class BasicNN(nn.Module, ABC):
         self._nn_type = nn_type
         self.size = size
         self.name = name
+        self.max_word_for_mention_vector = max_word_for_mention_vector
         self.word2vec = Word2VecModel()
         self.token_postag_list = get_token_postag_list(documents=documents)
         self.mention_tag_list = get_mention_tag_list(documents=documents)
@@ -169,6 +172,7 @@ class BasicNN(nn.Module, ABC):
             "token_postag_list": self.token_postag_list,
             "mention_tag_list": self.mention_tag_list,
             "relation_tag_list": self.relation_tag_list,
+            "max_word_for_mention_vector": self.max_word_for_mention_vector,
             "layer_sizes": [
                 self.fc1.in_features,
                 self.fc1.out_features,
@@ -206,6 +210,7 @@ class BasicNN(nn.Module, ABC):
         self.token_postag_list = metadata["token_postag_list"]
         self.mention_tag_list = metadata["mention_tag_list"]
         self.relation_tag_list = metadata["relation_tag_list"]
+        self.max_word_for_mention_vector = metadata["max_word_for_mention_vector"]
 
         layer_sizes = metadata["layer_sizes"]
         self.fc1 = nn.Linear(layer_sizes[0], layer_sizes[1])
