@@ -31,25 +31,12 @@ class EntityBasicNN(BasicNN):
             schema_id=schema_id,
         )
 
-    def _init_layer(self):
-        self.fc1 = nn.Linear(
-            6
-            + 2 * len(self.mention_tag_list)
-            + 2 * len(self.token_postag_list)
-            + 2 * self.word2vec.vector_size,
-            100,
-        )
-        self.fc2 = nn.Linear(100, 50)
-        self.fc3 = nn.Linear(50, 30)
-        self.fc4 = nn.Linear(30, 10)
-        self.fc5 = nn.Linear(10, 1)
-
     def _get_input_output_size(self):
         input_size = (
             6
             + 2 * len(self.mention_tag_list)
             + 2 * len(self.token_postag_list)
-            + 2 * self.word2vec.vector_size
+            + 2 * self.word2vec.vector_size * self.max_word_for_mention_vector
         )
         output_size = 1
         return input_size, output_size
@@ -77,20 +64,18 @@ class EntityBasicNN(BasicNN):
         index_distance = mention0.id - mention1.id
         single_X_input.append(abs(index_distance))
 
-        wordvec0 = self.word2vec.get_vector_for_multiple_words(str0.split())
-        wordvec1 = self.word2vec.get_vector_for_multiple_words(str1.split())
+        wordvecs0 = self.word2vec.get_multiple_vector_for_multiple_words(
+            str0.split(), self.max_word_for_mention_vector
+        )
+        wordvecs1 = self.word2vec.get_multiple_vector_for_multiple_words(
+            str1.split(), self.max_word_for_mention_vector
+        )
 
-        vector_size = self.word2vec.vector_size
+        for wordvec in wordvecs0:
+            single_X_input.extend(wordvec)
 
-        if wordvec0 is None or np.isnan(wordvec0).all():
-            single_X_input.extend([0] * vector_size)
-        else:
-            single_X_input.extend(wordvec0)
-
-        if wordvec1 is None or np.isnan(wordvec1).all():
-            single_X_input.extend([0] * vector_size)
-        else:
-            single_X_input.extend(wordvec1)
+        for wordvec in wordvecs1:
+            single_X_input.extend(wordvec)
 
         return single_X_input
 
@@ -103,6 +88,9 @@ class EntityBasicNN(BasicNN):
                 for j in range(i + 1, len(document.mentions)):
                     mention0 = document.mentions[i]
                     mention1 = document.mentions[j]
+
+                    if mention0.tag != mention1.tag:
+                        continue
 
                     single_X_input = self._get_single_input(mention0, mention1)
                     X.append(single_X_input)
@@ -129,6 +117,9 @@ class EntityBasicNN(BasicNN):
                 mention0 = mentions[i]
                 mention1 = mentions[j]
 
+                if mention0.tag != mention1.tag:
+                    continue
+
                 input = self._get_single_input(mention0, mention1)
                 input = torch.tensor([input], dtype=torch.float32)
 
@@ -136,7 +127,7 @@ class EntityBasicNN(BasicNN):
                 output = self(input)
                 predictions.append([[i, j], output])
 
-        threshold = 0.5
+        threshold = 0.7
 
         pairs = []
 

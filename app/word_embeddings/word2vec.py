@@ -46,3 +46,25 @@ class Word2VecModel:
             return None
 
         return np.mean(word_vectors, axis=0)
+
+    def get_multiple_vector_for_multiple_words(
+        self, words: typing.List[str], max_length
+    ):
+        word_vectors = [
+            self.get_vector(word) for word in words if self.get_vector(word) is not None
+        ]
+
+        if not word_vectors:
+            for i in range(max_length):
+                word_vectors.append(np.zeros(max_length * self.vector_size))
+                return word_vectors
+
+        if len(word_vectors) > max_length:
+            word_vectors = word_vectors[:max_length]
+
+        if len(word_vectors) < max_length:
+            original_length = len(word_vectors)
+            for i in range(max_length - original_length):
+                word_vectors.append(np.zeros(self.vector_size))
+
+        return word_vectors
