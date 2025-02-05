@@ -151,7 +151,7 @@ class BasicNN(nn.Module, ABC):
         if self.size == ModelSize.SMALL:
             return [50, 25, 15, 10]
         elif self.size == ModelSize.BIG:
-            return [200, 100, 50, 25]
+            return [1000, 200, 50, 25]
         elif self.size == ModelSize.MEDIUM:
             return [100, 50, 30, 10]
         else:
@@ -190,7 +190,6 @@ class BasicNN(nn.Module, ABC):
         directory = f"basic_nn/{self._nn_type.value}/{self.name}"
         if not os.path.exists(directory):
             return False
-            raise FileNotFoundError(f"Pfad nicht gefunden: {directory}")
 
         file_path_metadata = f"{directory}/metadata.json"
         file_path_model = f"{directory}/nn.pth"
