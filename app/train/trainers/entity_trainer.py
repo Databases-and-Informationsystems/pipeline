@@ -8,6 +8,7 @@ from app.model.schema import Schema
 from app.model.training import TrainingResults
 from app.train.trainers.trainer import Trainer, TrainerStepType
 from app.train.basic_nns.entity_nn import EntityBasicNN
+from app.util.logger import logger
 
 
 class EntityTrainModelType(Enum):
@@ -29,14 +30,6 @@ class EntityTrainer(Trainer, ABC):
 
     def __init__(self, name: str, evaluate: bool):
         super().__init__(name, TrainerStepType.ENTITY_TRAINER, evaluate)
-
-    def train(self, schema: Schema, documents: typing.List[Document]) -> str:
-        res = self._train(schema, documents)
-        return res
-
-    @abstractmethod
-    def _train(self, schema: Schema, documents: typing.List[Document]) -> str:
-        pass
 
 
 class NNEntityTrainer(EntityTrainer):

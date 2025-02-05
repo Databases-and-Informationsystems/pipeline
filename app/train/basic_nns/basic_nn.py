@@ -19,6 +19,7 @@ from app.train.basic_nns.basic_nn_utils import (
 from app.model.document import Document, Token, Mention, Relation
 from app.model.schema import Schema
 from app.model.settings import ModelSize
+from app.util.logger import logger
 from app.word_embeddings.word2vec import Word2VecModel
 
 
@@ -35,7 +36,7 @@ class BasicNN(nn.Module, ABC):
     token_postag_list: list[str]
     mention_tag_list: list[str]
     relation_tag_list: list[str]
-    name: str
+    _name: str
     loaded: bool
     max_word_for_mention_vector: int
 
@@ -50,7 +51,7 @@ class BasicNN(nn.Module, ABC):
         super(BasicNN, self).__init__()
         self._nn_type = nn_type
         self.size = size
-        self.name = name
+        self._name = name
         self.max_word_for_mention_vector = max_word_for_mention_vector
         self.word2vec = Word2VecModel()
         self.token_postag_list = get_token_postag_list(documents=documents)
@@ -63,7 +64,7 @@ class BasicNN(nn.Module, ABC):
 
     @property
     def name(self) -> str:
-        return self.name
+        return self._name
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -108,7 +109,7 @@ class BasicNN(nn.Module, ABC):
                 optimizer.step()
 
             epoch_loss /= num_batches
-            print(f"Epoche [{epoch+1}/{num_epochs}] abgeschlossen. Loss: {epoch_loss}")
+            logger.debug(f"epoch [{epoch+1}/{num_epochs}] finished. Loss: {epoch_loss}")
             epoch_loss_list.append(epoch_loss)
 
         return epoch_loss_list
@@ -132,7 +133,7 @@ class BasicNN(nn.Module, ABC):
                 doc for i, split in enumerate(splits) if i != fold for doc in split
             ]
 
-            print(f"Durchgang {fold + 1} von {num_splits}")
+            logger.debug(f"Run {fold + 1} of {num_splits}")
 
             self._init_layer()
             self.start_training(documents=train_set)
@@ -150,7 +151,6 @@ class BasicNN(nn.Module, ABC):
                         prediction=prediction, truth=test_document
                     )
                 )
-        print(sum(score) / len(score))
         return sum(score) / len(score)
 
     def _get_hidden_layer_sizes(self) -> list[int]:
@@ -190,8 +190,9 @@ class BasicNN(nn.Module, ABC):
         with open(file_path_metadata, "w") as metadata_file:
             json.dump(metadata, metadata_file)
 
-        print(f"modell saved in: {file_path_nn}")
-        print(f"metadata saved in: {file_path_metadata}")
+        logger.debug(
+            f"model saved in: {file_path_nn}\nmetadata saved in: {file_path_metadata}"
+        )
 
     def _load_from_file(self):
         directory = f"models/basic_nn/{self._nn_type.value}/{self.name}"
@@ -223,7 +224,7 @@ class BasicNN(nn.Module, ABC):
         self.fc5 = nn.Linear(layer_sizes[4], layer_sizes[5])
 
         self.load_state_dict(torch.load(file_path_model))
-        print(f"Model successfully loaded from {file_path_model}")
+        logger.debug(f"Model successfully loaded from {file_path_model}")
         return True
 
     def _get_mention_tag_nn_input_list(self, mention: Mention):

@@ -3,6 +3,7 @@ import os
 import typing
 
 from app.pipeline.step import PipelineStepType
+from app.util.logger import logger
 
 uploads_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../uploads"))
 
@@ -45,8 +46,8 @@ def read_json_from_file(
     except FileNotFoundError:
         return None
     except json.JSONDecodeError:
-        print(f"Error: The file '{file_path}' is not a valid JSON file.")
+        logger.error(f"Error: The file '{file_path}' is not a valid JSON file.")
         return None
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logger.error(f"An unexpected error occurred during 'read_json_from_file': {e}")
         return None

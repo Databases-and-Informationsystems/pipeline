@@ -24,6 +24,9 @@ class MentionTrainerFactory:
         model_type: MentionTrainModelType = MentionTrainModelType.from_string(
             settings.get("model_type")
         )
+        if settings.get("name") is None:
+            raise ValueError("'name' is required as parameter")
+
         match model_type:
             case MentionTrainModelType.BASIC_NEURAL_NETWORK:
                 size = ModelSize.from_string(settings.get("model_size"))
@@ -59,6 +62,9 @@ class EntityTrainerFactory:
         model_type: EntityTrainModelType = EntityTrainModelType.from_string(
             settings.get("model_type")
         )
+        if settings.get("name") is None:
+            raise ValueError("'name' is required as parameter")
+
         match model_type:
             case EntityTrainModelType.BASIC_NEURAL_NETWORK:
                 size = ModelSize.from_string(settings.get("model_size"))
@@ -95,6 +101,9 @@ class RelationTrainerFactory:
         model_type: RelationTrainModelType = RelationTrainModelType.from_string(
             settings.get("model_type")
         )
+        if settings.get("name") is None:
+            raise ValueError("'name' is required as parameter")
+
         match model_type:
             case RelationTrainModelType.BASIC_NEURAL_NETWORK:
                 size = ModelSize.from_string(settings.get("model_size"))

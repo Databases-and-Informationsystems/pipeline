@@ -30,14 +30,6 @@ class RelationTrainer(Trainer, ABC):
     def __init__(self, name: str, evaluate: bool):
         super().__init__(name, TrainerStepType.ENTITY_TRAINER, evaluate)
 
-    def train(self, schema: Schema, documents: typing.List[Document]) -> str:
-        res = self._train(schema, documents)
-        return res
-
-    @abstractmethod
-    def _train(self, schema: Schema, documents: typing.List[Document]) -> str:
-        pass
-
 
 class NNRelationTrainer(RelationTrainer):
     size: ModelSize
