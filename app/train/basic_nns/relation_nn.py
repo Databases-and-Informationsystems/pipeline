@@ -30,7 +30,7 @@ class RelationBasicNN(BasicNN):
             6
             + 2 * len(self.mention_tag_list)
             + 2 * len(self.token_postag_list)
-            + 2 * self.word2vec.vector_size
+            + 2 * self.word2vec.vector_size * self.max_word_for_mention_vector
         )
         output_size = 1 + len(self.relation_tag_list)
         return input_size, output_size
@@ -38,10 +38,10 @@ class RelationBasicNN(BasicNN):
     def _get_single_input(self, head_mention: Mention, tail_mention: Mention):
         single_X_input = []
 
-        haed_str = self._get_mention_text(head_mention)
+        head_str = self._get_mention_text(head_mention)
         tail_str = self._get_mention_text(tail_mention)
 
-        single_X_input.append(self._get_string_similarity(haed_str, tail_str))
+        single_X_input.append(self._get_string_similarity(head_str, tail_str))
 
         single_X_input.append(head_mention.tokens[0].sentence_index)
         single_X_input.append(tail_mention.tokens[0].sentence_index)
@@ -58,20 +58,18 @@ class RelationBasicNN(BasicNN):
         index_distance = head_mention.id - tail_mention.id
         single_X_input.append(abs(index_distance))
 
-        wordvec0 = self.word2vec.get_vector_for_multiple_words(haed_str.split())
-        wordvec1 = self.word2vec.get_vector_for_multiple_words(tail_str.split())
+        wordvecs0 = self.word2vec.get_multiple_vector_for_multiple_words(
+            head_str.split(), self.max_word_for_mention_vector
+        )
+        wordvecs1 = self.word2vec.get_multiple_vector_for_multiple_words(
+            tail_str.split(), self.max_word_for_mention_vector
+        )
 
-        vector_size = self.word2vec.vector_size
+        for wordvec in wordvecs0:
+            single_X_input.extend(wordvec)
 
-        if wordvec0 is None or np.isnan(wordvec0).all():
-            single_X_input.extend([0] * vector_size)
-        else:
-            single_X_input.extend(wordvec0)
-
-        if wordvec1 is None or np.isnan(wordvec1).all():
-            single_X_input.extend([0] * vector_size)
-        else:
-            single_X_input.extend(wordvec1)
+        for wordvec in wordvecs1:
+            single_X_input.extend(wordvec)
 
         return single_X_input
 
@@ -88,7 +86,6 @@ class RelationBasicNN(BasicNN):
 
         if relation is None:
             single_y_output.append(1)
-
         else:
             single_y_output.append(0)
 
@@ -177,7 +174,7 @@ class RelationBasicNN(BasicNN):
                     prediciton_relation.head_mention_id == true_relation.head_mention.id
                     and prediciton_relation.tail_mention_id
                     == true_relation.tail_mention.id
-                    and prediciton_relation.tag == true_relation.tag
+                    # and prediciton_relation.tag == true_relation.tag
                 ):
                     counter += 1
         return counter * 2 / (len(truth.mentions) + len(prediction))
