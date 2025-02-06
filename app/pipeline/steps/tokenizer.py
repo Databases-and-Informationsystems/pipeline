@@ -2,12 +2,11 @@ import typing
 from abc import abstractmethod, ABC
 
 import nltk
-from nltk.tokenize import PunktSentenceTokenizer
+from nltk.tokenize import PunktSentenceTokenizer, word_tokenize
 
 from app.model.document import Token, CToken
 from app.pipeline.step import PipelineStep, PipelineStepType
-
-from nltk.tokenize import word_tokenize
+from app.util.logger import logger
 
 
 class TokenizeStep(PipelineStep, ABC):
@@ -19,6 +18,9 @@ class TokenizeStep(PipelineStep, ABC):
         super().__init__(name, PipelineStepType.TOKENIZER)
 
     def run(self, content: str) -> typing.List[CToken]:
+        logger.info(
+            f"{self.name} with settings: {self._get_settings().__str__()} executed"
+        )
         res = self._run(content)
         return res
 
@@ -41,9 +43,6 @@ class Tokenizer(TokenizeStep):
             nltk.data.find("averaged_perceptron_tagger_eng")
         except LookupError:
             nltk.download("averaged_perceptron_tagger_eng")
-
-    def _train(self):
-        pass
 
     def _run(self, content: str) -> typing.List[CToken]:
         tokenizer = PunktSentenceTokenizer()
@@ -78,3 +77,6 @@ class Tokenizer(TokenizeStep):
 
             sentence_index += 1
         return tokens
+
+    def _get_settings(self) -> typing.Dict[str, typing.Any]:
+        return {}

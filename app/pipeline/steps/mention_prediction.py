@@ -9,6 +9,7 @@ from app.model.document import CMention, Token
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
 from app.train.basic_nns.mention_nn import MentionBasicNN
+from app.util.logger import logger
 
 
 class MentionModelType(Enum):
@@ -38,6 +39,9 @@ class MentionStep(PipelineStep, ABC):
     def run(
         self, content: str, schema: Schema, tokens: typing.List[Token]
     ) -> typing.List[CMention]:
+        logger.info(
+            f"{self.name} with settings: {self._get_settings().__str__()} executed"
+        )
         res = self._run(content, schema, tokens)
         return res
 
@@ -56,16 +60,11 @@ class LLMMentionStep(MentionStep):
         self,
         temperature: Temperature,
         gpt_model: GptModel,
-        name: str = "MentionPrediction",
+        name: str = "LLMMentionPrediction",
     ):
         super().__init__(name)
         self.temperature = temperature
         self.gpt_model = gpt_model
-
-        print("Temperature: " + str(temperature.value))
-
-    def _train(self):
-        pass
 
     def _run(
         self, content: str, schema: Schema, tokens: typing.List[Token]
@@ -93,6 +92,12 @@ class LLMMentionStep(MentionStep):
 
         return c_mentions
 
+    def _get_settings(self) -> typing.Dict[str, typing.Any]:
+        return {
+            "temperature": self.temperature.value,
+            "gpt_model": self.gpt_model.value,
+        }
+
 
 class NNMentionStep(MentionStep):
     model: MentionBasicNN
@@ -100,13 +105,10 @@ class NNMentionStep(MentionStep):
     def __init__(
         self,
         model: MentionBasicNN,
-        name: str = "MentionPrediction",
+        name: str = "NNMentionPrediction",
     ):
         super().__init__(name)
         self.model = model
-
-    def _train(self):
-        pass
 
     def _run(
         self, content: str, schema: Schema, tokens: typing.List[Token]
@@ -115,3 +117,8 @@ class NNMentionStep(MentionStep):
         c_mentions = self.model.predict(tokens=tokens)
 
         return c_mentions
+
+    def _get_settings(self) -> typing.Dict[str, typing.Any]:
+        return {
+            "model": self.model.name,
+        }

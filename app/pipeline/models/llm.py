@@ -6,6 +6,7 @@ from app.model.document import Token, Mention
 from app.model.schema import Schema
 from app.model.settings import GptModel, Temperature
 from app.util.llm_util import get_prediction, extract_json
+from app.util.logger import logger
 
 
 class LLM(ABC):
@@ -61,14 +62,14 @@ class LLMMentionPrediction(LLM):
 
     def run(self, content: str, schema: Schema, tokens: typing.List[Token]) -> str:
         prompt: str = LLMMentionPrediction._get_prompt(content, schema, tokens)
-        print(prompt, flush=True)
+        logger.debug(f"Open AI mention prediction with input:\n{prompt}")
         res = get_prediction(
             prompt=prompt,
             model=self.model,
             key=self.open_ai_key,
             temperature=self.temperature,
         )
-
+        logger.debug(f"Open AI mention prediction output:\n{res}")
         return extract_json(res)
 
     @staticmethod
@@ -233,13 +234,14 @@ class LLMEntityPrediction(LLM):
 
     def run(self, content: str, schema: Schema, mentions: typing.List[Mention]) -> str:
         prompt: str = LLMEntityPrediction._get_prompt(content, schema, mentions)
-        print(prompt, flush=True)
+        logger.debug(f"Open AI entity prediction with input:\n'{prompt}'")
         res = get_prediction(
             prompt=prompt,
             model=self.model,
             key=self.open_ai_key,
             temperature=self.temperature,
         )
+        logger.debug(f"Open AI entity prediction output:\n{res}")
 
         return extract_json(res)
 
@@ -290,13 +292,14 @@ class LLMRelationPrediction(LLM):
 
     def run(self, content: str, schema: Schema, mentions: typing.List[Mention]) -> str:
         prompt: str = self._get_prompt(content, schema, mentions)
-        print(prompt)
+        logger.debug(f"Open AI relation prediction with input:\n{prompt}")
         res = get_prediction(
             prompt=prompt,
             model=self.model,
             key=self.open_ai_key,
             temperature=self.temperature,
         )
+        logger.debug(f"Open AI relation prediction output:\n{res}")
 
         return extract_json(res)
 

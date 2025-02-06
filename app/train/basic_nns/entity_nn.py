@@ -11,6 +11,7 @@ from app.model.document import Document, CEntity, Mention, CMention
 from app.model.schema import Schema
 from app.model.settings import ModelSize
 from app.util.llm_util import get_prediction, extract_json
+from app.util.logger import logger
 from app.word_embeddings.word2vec import Word2VecModel
 from app.train.basic_nns.basic_nn import BasicNN, BasicNNType
 
@@ -28,7 +29,6 @@ class EntityBasicNN(BasicNN):
             size=size,
             name=name,
             documents=documents,
-            schema_id=schema_id,
         )
 
     def _get_input_output_size(self):
@@ -145,6 +145,7 @@ class EntityBasicNN(BasicNN):
                 pred_mentions.append(mentions[mention_id])
             entitys.append(CEntity(mentions=pred_mentions))
 
+        logger.debug(f"Entity basic nn prediction output:\n{entitys}")
         return entitys
 
     def _evaluate_prediction_against_truth(

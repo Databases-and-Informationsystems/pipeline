@@ -4,6 +4,8 @@ import numpy as np
 import os
 import typing
 
+from app.util.logger import logger
+
 
 class Word2VecModel:
     _model = None
@@ -17,11 +19,11 @@ class Word2VecModel:
 
     def _load_model(self):
         if os.path.exists(f"{self._model_directory}/{self._model_name}"):
-            print("load word2vec model...")
+            logger.info("load word2vec model...")
             Word2VecModel._model = KeyedVectors.load(
                 f"{self._model_directory}/{self._model_name}"
             )
-            print("succesfully loaded word2vec model")
+            logger.info("successfully loaded word2vec model")
         else:
             model = api.load("word2vec-google-news-300")
             if os.path.exists(self._model_directory) == False:

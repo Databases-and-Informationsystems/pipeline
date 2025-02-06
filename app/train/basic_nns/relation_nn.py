@@ -7,6 +7,7 @@ from app.model.document import Document, CEntity, Mention, CRelation
 from app.model.settings import ModelSize
 from app.train.basic_nns.basic_nn import BasicNN, BasicNNType
 from app.train.basic_nns.basic_nn_utils import get_relation_by_mentions
+from app.util.logger import logger
 
 
 class RelationBasicNN(BasicNN):
@@ -15,14 +16,12 @@ class RelationBasicNN(BasicNN):
         name: str,
         size: ModelSize = ModelSize.MEDIUM,
         documents: typing.List[Document] = [],
-        schema_id: typing.Optional[str] = None,
     ):
         super().__init__(
             nn_type=BasicNNType.RELATION_NN,
             size=size,
             name=name,
             documents=documents,
-            schema_id=schema_id,
         )
 
     def _get_input_output_size(self):
@@ -162,6 +161,7 @@ class RelationBasicNN(BasicNN):
                 )
                 relations.append(c_relation)
 
+        logger.debug(f"Relation basic nn prediction output:\n{relations}")
         return relations
 
     def _evaluate_prediction_against_truth(

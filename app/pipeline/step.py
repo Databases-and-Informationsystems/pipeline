@@ -1,4 +1,5 @@
 import abc
+import typing
 from enum import Enum
 
 
@@ -28,3 +29,7 @@ class PipelineStep(abc.ABC):
     @property
     def pipeline_step_type(self) -> PipelineStepType:
         return self._pipeline_step_type
+
+    @abc.abstractmethod
+    def _get_settings(self) -> typing.Dict[str, typing.Any]:
+        pass

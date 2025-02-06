@@ -24,6 +24,9 @@ class MentionTrainerFactory:
         model_type: MentionTrainModelType = MentionTrainModelType.from_string(
             settings.get("model_type")
         )
+        if settings.get("name") is None:
+            raise ValueError("'name' is required as parameter")
+
         match model_type:
             case MentionTrainModelType.BASIC_NEURAL_NETWORK:
                 size = ModelSize.from_string(settings.get("model_size"))
@@ -43,9 +46,13 @@ def get_mention_train_settings(model_type: MentionTrainModelType) -> dict:
                     "values": [model_size.value for model_size in ModelSize],
                     "default": ModelSize.get_default().value,
                 },
-                "model": {
+                "enable_evaluation": {
                     "values": "boolean",
                     "default": True,
+                },
+                "name": {
+                    "values": "string",
+                    "default": None,
                 },
             }
     raise ValueError(
@@ -59,6 +66,9 @@ class EntityTrainerFactory:
         model_type: EntityTrainModelType = EntityTrainModelType.from_string(
             settings.get("model_type")
         )
+        if settings.get("name") is None:
+            raise ValueError("'name' is required as parameter")
+
         match model_type:
             case EntityTrainModelType.BASIC_NEURAL_NETWORK:
                 size = ModelSize.from_string(settings.get("model_size"))
@@ -79,9 +89,13 @@ def get_entity_train_settings(model_type: EntityTrainModelType) -> dict:
                     "values": [model_size.value for model_size in ModelSize],
                     "default": ModelSize.get_default().value,
                 },
-                "model": {
+                "enable_evaluation": {
                     "values": "boolean",
                     "default": True,
+                },
+                "name": {
+                    "values": "string",
+                    "default": None,
                 },
             }
     raise ValueError(
@@ -95,6 +109,9 @@ class RelationTrainerFactory:
         model_type: RelationTrainModelType = RelationTrainModelType.from_string(
             settings.get("model_type")
         )
+        if settings.get("name") is None:
+            raise ValueError("'name' is required as parameter")
+
         match model_type:
             case RelationTrainModelType.BASIC_NEURAL_NETWORK:
                 size = ModelSize.from_string(settings.get("model_size"))
@@ -115,9 +132,13 @@ def get_relation_train_settings(model_type: RelationTrainModelType) -> dict:
                     "values": [model_size.value for model_size in ModelSize],
                     "default": ModelSize.get_default().value,
                 },
-                "model": {
+                "enable_evaluation": {
                     "values": "boolean",
                     "default": True,
+                },
+                "name": {
+                    "values": "string",
+                    "default": None,
                 },
             }
     raise ValueError(

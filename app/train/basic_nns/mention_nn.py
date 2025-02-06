@@ -11,6 +11,7 @@ from app.train.basic_nns.basic_nn_utils import (
 from app.model.document import Document, Token, Mention, CMention
 from app.model.settings import ModelSize
 from app.train.basic_nns.basic_nn import BasicNN, BasicNNType
+from app.util.logger import logger
 
 
 class MentionBasicNN(BasicNN):
@@ -22,7 +23,6 @@ class MentionBasicNN(BasicNN):
         name: str,
         size: ModelSize = ModelSize.MEDIUM,
         documents: typing.List[Document] = [],
-        schema_id: typing.Optional[str] = None,
     ):
         self.token_postag_list = get_token_postag_list(documents=documents)
         self.mention_tag_list = get_mention_tag_list(documents=documents)
@@ -31,7 +31,6 @@ class MentionBasicNN(BasicNN):
             size=size,
             name=name,
             documents=documents,
-            schema_id=schema_id,
         )
 
     def _get_input_output_size(self):
@@ -165,6 +164,7 @@ class MentionBasicNN(BasicNN):
             max_index = torch.argmax(type_prediction)
             mention.type = self.mention_tag_list[max_index]
 
+        logger.debug(f"Mention basic nn prediction output:\n{mentions}")
         return mentions
 
     def _evaluate_prediction_against_truth(
