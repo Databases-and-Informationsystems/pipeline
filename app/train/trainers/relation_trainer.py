@@ -28,7 +28,7 @@ class RelationTrainModelType(Enum):
 class RelationTrainer(Trainer, ABC):
 
     def __init__(self, name: str, evaluate: bool):
-        super().__init__(name, TrainerStepType.ENTITY_TRAINER, evaluate)
+        super().__init__(name, TrainerStepType.RELATION_TRAINER, evaluate)
 
 
 class NNRelationTrainer(RelationTrainer):
