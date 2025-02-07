@@ -79,7 +79,8 @@ class LLMMentionPrediction(LLM):
 You are an advanced text analysis assistant. Your task is to process a given text with annotated tokens and extract mentions based on their context. 
 Each mention consists of a span of consecutive tokens that form a distinct concept or unit. 
 Mentions should not group separate entities or actions into a single span. 
-Each mention consists of the SMALLEST! possible, meaningful unit of connected tokens. 
+Each mention consists of the SMALLEST! possible, meaningful unit of connected tokens. Nevertheless, articles are assigned to their corresponding nouns.
+ 
 Mentions must NEVER! combine several independent semantic units, but should be broken down as finely as possible.
 
 Each mention should be categorized into one of the following types:
@@ -91,7 +92,7 @@ Input:
 - Tokens: A list of tokens with their meanings (=text) and sentence indices.
 
 Output:
-- Mentions: A list of mentions with their MentionType and list of tokenDocumentIndices of their tokens (e.g. [{{"type": "<mention-type-1>", "startTokenIndex": 0, "endTokenIndex": 1}}] as raw json file
+- Mentions: A list of mentions with their MentionType and list of tokenDocumentIndices of their tokens (e.g. [{{"type": "<mention-type-1>", "startTokenIndex": 0, "endTokenIndex": 1}}] as raw json file. The mentions must not overlap under any circumstances.
 
 Example (The mention types in the example might not be available in the actual task): 
 Content: "After a claim is registered, it is examined by a claims officer."
