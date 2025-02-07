@@ -7,3 +7,15 @@ POST http://localhost/pipeline/train/mention?
 Content-Type: application/json
 
 < ./train_nn_test_input.json
+
+
+### Example request to create mention basic nn
+POST http://localhost:8080/pipeline/train/mention?
+   model_type=basic_nn
+   &name=CustomModel1
+   &model_size=medium
+   &enable_evaluation=True
+Content-Type: application/json
+
+< ./train_nn_test_input2.json
+

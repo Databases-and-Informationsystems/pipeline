@@ -30,7 +30,11 @@ class MentionTrainerFactory:
         match model_type:
             case MentionTrainModelType.BASIC_NEURAL_NETWORK:
                 size = ModelSize.from_string(settings.get("model_size"))
-                evaluate = settings.get("enable_evaluation").lower() == "true"
+                evaluate = (
+                    settings.get("enable_evaluation").lower() == "true"
+                    if settings and settings.get("enable_evaluation")
+                    else False
+                )
                 nn_name = settings.get("name")
                 return NNMentionTrainer(size=size, evaluate=evaluate, nn_name=nn_name)
         raise ValueError(
@@ -72,7 +76,11 @@ class EntityTrainerFactory:
         match model_type:
             case EntityTrainModelType.BASIC_NEURAL_NETWORK:
                 size = ModelSize.from_string(settings.get("model_size"))
-                evaluate = settings.get("enable_evaluation").lower() == "true"
+                evaluate = (
+                    settings.get("enable_evaluation").lower() == "true"
+                    if settings and settings.get("enable_evaluation")
+                    else False
+                )
                 nn_name = settings.get("name")
                 return NNEntityTrainer(size=size, evaluate=evaluate, nn_name=nn_name)
 
@@ -115,7 +123,11 @@ class RelationTrainerFactory:
         match model_type:
             case RelationTrainModelType.BASIC_NEURAL_NETWORK:
                 size = ModelSize.from_string(settings.get("model_size"))
-                evaluate = settings.get("enable_evaluation").lower() == "true"
+                evaluate = (
+                    settings.get("enable_evaluation").lower() == "true"
+                    if settings and settings.get("enable_evaluation")
+                    else False
+                )
                 nn_name = settings.get("name")
                 return NNRelationTrainer(size=size, evaluate=evaluate, nn_name=nn_name)
 
