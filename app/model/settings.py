@@ -58,26 +58,3 @@ class Temperature(Enum):
             return Temperature(value)
         except ValueError:
             return Temperature.get_default()
-
-
-class ModelSize(Enum):
-    SMALL = "small"
-    MEDIUM = "medium"
-    BIG = "big"
-
-    @staticmethod
-    def get_default():
-        return ModelSize.MEDIUM
-
-    @staticmethod
-    def from_string(value: str) -> "ModelSize":
-        """
-        Map input value to equivalent enum state.
-        If the input string is not represented by an enum state, return the default enum state.
-        :param value:
-        :return:
-        """
-        try:
-            return ModelSize(value)
-        except ValueError:
-            return ModelSize.get_default()

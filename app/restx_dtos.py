@@ -220,31 +220,6 @@ relation_step_input = api.model(
         "mentions": fields.List(fields.Nested(mention_input), required=True),
     },
 )
-### --------------------------------------------------------------------------------------------------------------------
-# Train models
-### --------------------------------------------------------------------------------------------------------------------
-
-train_nn_input = api.model(
-    "TrainNNInput",
-    {
-        "schema": fields.Nested(schema_input_for_relations, required=True),
-        "documents": fields.List(fields.Nested(document)),
-    },
-)
-
-### --------------------------------------------------------------------------------------------------------------------
-# Training Results
-
-training_results = api.model(
-    "TrainingResults",
-    {
-        "epoch_train_loss": fields.List(fields.Float(required=True)),
-        "number_of_epochs": fields.Integer(required=True),
-        "cross_validation_score": fields.Float,
-    },
-)
-
-### --------------------------------------------------------------------------------------------------------------------
 
 
 ### --------------------------------------------------------------------------------------------------------------------

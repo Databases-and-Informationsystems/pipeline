@@ -46,22 +46,3 @@ from .relation_step_controller import RelationStepController
 
 
 api.add_namespace(steps_ns, path="/steps")
-
-# /train/...
-train_nn_ns: Namespace = Namespace(
-    "Training Routes",
-    description="""
-Train own models for certain schemas
-
-Each step contains 3 Endpoints (**GET** & **POST** & **DELETE**):
-- **GET**: fetch all possible _model_types_ with its possible settings. The description of the _settings_ can be found in the model definition of the response
-- **POST**: executes the pipeline training. Each pipeline training accepts the _model_types_ and its _settings_ that are defined in the GET request of the step
-- **DELETE**: deletes trained model by given model type und model name
-    """,
-)
-
-from .entity_train_controller import EntityTrainController
-from .mention_train_controller import MentionTrainController
-from .relation_train_controller import RelationTrainController
-
-api.add_namespace(train_nn_ns, path="/train")
