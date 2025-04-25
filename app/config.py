@@ -12,8 +12,6 @@ class Config:
     )
     TESTING = False
 
-    MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50MB
-
 
 class TestingConfig:
     DEBUG = (

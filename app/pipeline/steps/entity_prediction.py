@@ -8,13 +8,11 @@ from app.pipeline.models.llm import GptModel, LLMEntityPrediction
 from app.model.document import Mention, CEntity
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
-from app.train.basic_nns.entity_nn import EntityBasicNN
 from app.util.logger import logger
 
 
 class EntityModelType(Enum):
     LLM = "llm"
-    BASIC_NEURAL_NETWORK = "basic_nn"
 
     @staticmethod
     def get_default():
@@ -107,25 +105,3 @@ def get_mentions(indices: typing.List[int], mentions: typing.List[Mention]) -> C
         res_mentions.append(mention_dict[index])
 
     return CEntity(mentions=res_mentions)
-
-
-class NNEntityStep(EntityStep):
-    model: EntityBasicNN
-
-    def __init__(
-        self,
-        model: EntityBasicNN,
-        name: str = "MentionPrediction",
-    ):
-        super().__init__(name)
-        self.model = model
-
-    def _run(
-        self, content: str, schema: Schema, mentions: typing.List[Mention]
-    ) -> typing.List[typing.List[int]]:
-        c_entities = self.model.predict(mentions=mentions)
-
-        return c_entities
-
-    def _get_settings(self) -> typing.Dict[str, typing.Any]:
-        return {"name": self.model.name}

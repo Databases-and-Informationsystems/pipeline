@@ -6,7 +6,7 @@ from flask_restx import Resource
 from pydantic import TypeAdapter
 
 from . import steps_ns as ns, get_document_id, caching_enabled
-from ..model.document import Mention
+from ..model.document import Mention, CRelation
 from ..model.schema import Schema
 from ..model.settings import GptModel, Temperature
 from ..pipeline.factory import RelationStepFactory, get_relation_settings
@@ -88,10 +88,11 @@ class RelationStepController(Resource):
             if cached_res is not None:
                 return cached_res
 
-        # TODO convert result to correct format for file / result
-        res: any = relation_pipeline_step.run(
+        relations: typing.List[CRelation] = relation_pipeline_step.run(
             content=content, schema=schema, mentions=mentions
         )
+
+        res = [relation.model_dump(mode="json") for relation in relations]
 
         if caching_enabled():
             create_caching_file_from_data(

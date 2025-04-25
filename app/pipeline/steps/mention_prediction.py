@@ -8,13 +8,11 @@ from app.pipeline.models.llm import GptModel, LLMMentionPrediction
 from app.model.document import CMention, Token
 from app.model.schema import Schema
 from app.pipeline.step import PipelineStep, PipelineStepType
-from app.train.basic_nns.mention_nn import MentionBasicNN
 from app.util.logger import logger
 
 
 class MentionModelType(Enum):
     LLM = "llm"
-    BASIC_NEURAL_NETWORK = "basic_nn"
 
     @staticmethod
     def get_default():
@@ -96,29 +94,4 @@ class LLMMentionStep(MentionStep):
         return {
             "temperature": self.temperature.value,
             "gpt_model": self.gpt_model.value,
-        }
-
-
-class NNMentionStep(MentionStep):
-    model: MentionBasicNN
-
-    def __init__(
-        self,
-        model: MentionBasicNN,
-        name: str = "NNMentionPrediction",
-    ):
-        super().__init__(name)
-        self.model = model
-
-    def _run(
-        self, content: str, schema: Schema, tokens: typing.List[Token]
-    ) -> typing.List[CMention]:
-
-        c_mentions = self.model.predict(tokens=tokens)
-
-        return c_mentions
-
-    def _get_settings(self) -> typing.Dict[str, typing.Any]:
-        return {
-            "model": self.model.name,
         }

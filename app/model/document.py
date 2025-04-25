@@ -88,16 +88,6 @@ class CRelation(BaseModel):
     tail_mention_id: int
     tag: str
 
-    def to_dict(self) -> typing.Dict[str, typing.Any]:
-        return {
-            "head_mention": self.head_mention_id,
-            "tail_mention": self.tail_mention_id,
-            "tag": self.tag,
-        }
-
-    def to_json(self) -> str:
-        return json.dumps(self.to_dict())
-
 
 class DocumentState(Enum):
     NEW = 1
